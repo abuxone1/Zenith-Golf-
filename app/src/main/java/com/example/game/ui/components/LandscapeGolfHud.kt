@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -108,6 +110,8 @@ fun LandscapeTopBar(
     onOpenCaddieChat: () -> Unit,
     onTogglePhysicsDebug: () -> Unit,
     onPauseGame: () -> Unit = {},
+    isCompactWidth: Boolean = false,
+    isCompactHeight: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val hole = uiState.currentHole
@@ -137,8 +141,8 @@ fun LandscapeTopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                .padding(horizontal = if (isCompactWidth) 6.dp else 10.dp, vertical = if (isCompactHeight) 4.dp else 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (isCompactWidth) 4.dp else 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // LEFT: Back Button (>= 48.dp) + Pause Button + Hole Number & Par
@@ -211,7 +215,7 @@ fun LandscapeTopBar(
                         Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
                                 text = "HOLE ${hole.holeNumber} • PAR ${hole.par} • ${hole.yardage}Y",
-                                fontSize = 12.sp,
+                                fontSize = if (isCompactWidth) 11.sp else 12.sp,
                                 fontWeight = FontWeight.Black,
                                 color = ZenithNeonGreen,
                                 letterSpacing = 0.4.sp,
@@ -250,26 +254,26 @@ fun LandscapeTopBar(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    modifier = Modifier.padding(horizontal = if (isCompactWidth) 8.dp else 12.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.SportsGolf,
                         contentDescription = null,
                         tint = ZenithGold,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(if (isCompactWidth) 14.dp else 16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(5.dp))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "STROKE ${uiState.currentStrokeCount} • TOTAL ${uiState.totalRoundStrokes}",
-                            fontSize = 12.sp,
+                            text = if (isCompactWidth) "S ${uiState.currentStrokeCount} • TOT ${uiState.totalRoundStrokes}" else "STROKE ${uiState.currentStrokeCount} • TOTAL ${uiState.totalRoundStrokes}",
+                            fontSize = if (isCompactWidth) 11.sp else 12.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
                             letterSpacing = 0.4.sp,
                             maxLines = 1
                         )
                         Text(
-                            text = "PAR ${hole.par} • ROUND (${uiState.roundScoreToParText})",
+                            text = "PAR ${hole.par} • (${uiState.roundScoreToParText})",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color = ZenithGold,
@@ -282,7 +286,7 @@ fun LandscapeTopBar(
             // RIGHT: Wind Direction & Speed + Compact Utility Buttons (>= 48.dp)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                horizontalArrangement = Arrangement.spacedBy(if (isCompactWidth) 4.dp else 5.dp)
             ) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -400,32 +404,34 @@ fun LandscapeTopBar(
                     }
                 }
 
-                // Physics Debug Telemetry Toggle (>= 48.dp)
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (uiState.isPhysicsDebugEnabled) ZenithGold.copy(alpha = 0.25f) else Color(0xCC0D1F15),
-                    border = BorderStroke(1.dp, if (uiState.isPhysicsDebugEnabled) ZenithGold else ZenithSurfaceBorder),
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable { onTogglePhysicsDebug() }
-                        .testTag("toggle_physics_debug_button")
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                // Physics Debug Telemetry Toggle (shown on wider displays/tablets to keep smartphone landscape uncluttered)
+                if (!isCompactWidth) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (uiState.isPhysicsDebugEnabled) ZenithGold.copy(alpha = 0.25f) else Color(0xCC0D1F15),
+                        border = BorderStroke(1.dp, if (uiState.isPhysicsDebugEnabled) ZenithGold else ZenithSurfaceBorder),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clickable { onTogglePhysicsDebug() }
+                            .testTag("toggle_physics_debug_button")
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.SportsGolf,
-                            contentDescription = "Toggle Physics Telemetry",
-                            tint = if (uiState.isPhysicsDebugEnabled) ZenithGold else ZenithTextSecondary,
-                            modifier = Modifier.size(17.dp)
-                        )
-                        Text(
-                            text = "DBG",
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            color = if (uiState.isPhysicsDebugEnabled) ZenithGold else ZenithTextSecondary
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.SportsGolf,
+                                contentDescription = "Toggle Physics Telemetry",
+                                tint = if (uiState.isPhysicsDebugEnabled) ZenithGold else ZenithTextSecondary,
+                                modifier = Modifier.size(17.dp)
+                            )
+                            Text(
+                                text = "DBG",
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Black,
+                                color = if (uiState.isPhysicsDebugEnabled) ZenithGold else ZenithTextSecondary
+                            )
+                        }
                     }
                 }
             }
@@ -735,6 +741,7 @@ fun DragReleasePowerBarHud(
     onSetPower: (Float) -> Unit = {},
     onSetCurveSpin: (Float) -> Unit = {},
     onSetVerticalSpin: (Float) -> Unit = {},
+    isCompactHeight: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val isDragging = uiState.isDraggingSwing
@@ -743,6 +750,8 @@ fun DragReleasePowerBarHud(
     val powerPct = (activePowerRatio * 100).toInt()
     val clubMaxYds = uiState.selectedClub.maxDistanceYds.toInt()
     val targetYds = uiState.currentPullbackTargetYds.toInt()
+    val meterHeight = if (isCompactHeight) 68.dp else 118.dp
+    val meterHeightFloat = if (isCompactHeight) 68f else 118f
 
     val (statusTitle, statusColor) = when {
         uiState.isBallInFlight -> Pair("IN FLIGHT", ZenithCyan)
@@ -765,13 +774,15 @@ fun DragReleasePowerBarHud(
         ),
         shape = RoundedCornerShape(18.dp),
         modifier = modifier
-            .width(124.dp)
+            .width(if (isCompactHeight) 114.dp else 124.dp)
             .testTag("drag_release_power_hud")
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 9.dp)
+            verticalArrangement = Arrangement.spacedBy(if (isCompactHeight) 3.dp else 5.dp),
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 7.dp, vertical = if (isCompactHeight) 6.dp else 9.dp)
         ) {
             // Status Pill
             Surface(
@@ -806,15 +817,15 @@ fun DragReleasePowerBarHud(
             // Vertical Power Bar Track (scales from 0% to 100% of selected club's max distance)
             Box(
                 modifier = Modifier
-                    .width(54.dp)
-                    .height(128.dp)
-                    .background(Color(0xFF091810), RoundedCornerShape(14.dp))
+                    .width(50.dp)
+                    .height(meterHeight)
+                    .background(Color(0xFF091810), RoundedCornerShape(12.dp))
                     .border(
                         width = 1.5.dp,
                         color = if (inCancelZone) Color(0xFFFF5252) else ZenithSurfaceBorder,
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(12.dp)
                     )
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .testTag("drag_power_bar")
             ) {
                 // Max club distance cap label at top
@@ -825,7 +836,7 @@ fun DragReleasePowerBarHud(
                     color = ZenithGold,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = 4.dp)
+                        .padding(top = 3.dp)
                 )
 
                 // Power Fill Bar from bottom
@@ -852,7 +863,7 @@ fun DragReleasePowerBarHud(
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = (128f * tick).dp)
+                            .padding(top = (meterHeightFloat * tick).dp)
                             .fillMaxWidth()
                             .height(1.dp)
                             .background(Color.White.copy(alpha = 0.28f))
@@ -1059,7 +1070,7 @@ fun DragReleasePowerBarHud(
                         border = BorderStroke(1.dp, ZenithGold.copy(alpha = 0.7f)),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 44.dp)
+                            .heightIn(min = 48.dp)
                             .clickable { onMulligan() }
                             .testTag("mulligan_button")
                     ) {
@@ -1120,7 +1131,9 @@ fun GolfPauseMenuOverlay(
                 .widthIn(max = 460.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -1158,7 +1171,7 @@ fun GolfPauseMenuOverlay(
                             border = BorderStroke(1.dp, if (selected) ZenithNeonGreen else ZenithSurfaceBorder),
                             modifier = Modifier
                                 .weight(1f)
-                                .heightIn(min = 44.dp)
+                                .heightIn(min = 48.dp)
                                 .clickable { onSelectCameraMode(mode) }
                                 .testTag("pause_cam_${mode.name.lowercase()}")
                         ) {

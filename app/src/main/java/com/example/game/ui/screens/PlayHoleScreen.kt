@@ -118,6 +118,8 @@ fun PlayHoleScreen(
             .testTag("play_hole_screen")
     ) {
         val isPortraitWindow = maxWidth < maxHeight
+        val isCompactHeight = maxHeight < 460.dp
+        val isCompactWidth = maxWidth < 760.dp
 
         // 1. Full-Screen 3D Course Canvas filling the whole background (with touch-anywhere drag-and-release swing control)
         CourseCanvas(
@@ -144,7 +146,9 @@ fun PlayHoleScreen(
                 onCycleCamera = onCycleCamera,
                 onOpenCaddieChat = onOpenCaddieChat,
                 onTogglePhysicsDebug = onTogglePhysicsDebug,
-                onPauseGame = onPauseGame
+                onPauseGame = onPauseGame,
+                isCompactWidth = isCompactWidth,
+                isCompactHeight = isCompactHeight
             )
 
             // Optional Compact Telemetry / Match Play / Score Notification Sub-Banners (Aligned Top-Left away from center ball view)
@@ -308,10 +312,16 @@ fun PlayHoleScreen(
             onSetPower = onSetPower,
             onSetCurveSpin = onSetSpin,
             onSetVerticalSpin = onSetVerticalSpin,
+            isCompactHeight = isCompactHeight,
             modifier = Modifier
-                .align(Alignment.CenterEnd)
+                .align(if (isCompactHeight) Alignment.BottomEnd else Alignment.CenterEnd)
+                .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(end = 12.dp, top = 48.dp)
+                .padding(
+                    end = if (isCompactWidth) 8.dp else 12.dp,
+                    top = if (isCompactHeight) 62.dp else 48.dp,
+                    bottom = if (isCompactHeight) 8.dp else 12.dp
+                )
         )
 
         // 7. In-Game Live Hole Telemetry Dialog

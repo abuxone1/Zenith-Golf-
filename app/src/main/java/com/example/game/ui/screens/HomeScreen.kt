@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -293,30 +294,32 @@ fun HomeScreen(
                         }
 
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = ZenithDeepForestGreen.copy(alpha = 0.9f),
                             border = BorderStroke(1.dp, ZenithNeonGreen),
                             modifier = Modifier
+                                .heightIn(min = 48.dp)
                                 .clickable { onNavigate(AppScreen.COURSE_SELECTION) }
                                 .testTag("change_course_chip")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Map,
-                                    contentDescription = null,
+                                    contentDescription = "Browse Courses",
                                     tint = ZenithNeonGreen,
-                                    modifier = Modifier.size(13.dp)
+                                    modifier = Modifier.size(15.dp)
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Spacer(modifier = Modifier.width(5.dp))
                                 Text(
                                     text = "COURSES",
                                     fontFamily = OutfitFontFamily,
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = Color.White
+                                    color = Color.White,
+                                    maxLines = 1
                                 )
                             }
                         }
@@ -401,7 +404,9 @@ fun HomeScreen(
                                     text = "3-HOLE QUICK",
                                     fontFamily = OutfitFontFamily,
                                     fontSize = 12.sp,
-                                    fontWeight = FontWeight.Black
+                                    fontWeight = FontWeight.Black,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -425,19 +430,28 @@ fun HomeScreen(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Black,
                     color = colors.accentGold,
-                    letterSpacing = 1.2.sp
+                    letterSpacing = 1.2.sp,
+                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "VIEW ALL MODES →",
-                    fontFamily = OutfitFontFamily,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.accentSuccess,
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .heightIn(min = 48.dp)
                         .clickable { onNavigate(AppScreen.GAME_MODES) }
-                        .padding(6.dp)
+                        .padding(horizontal = 8.dp)
                         .testTag("home_view_all_modes_btn")
-                )
+                ) {
+                    Text(
+                        text = "VIEW ALL MODES →",
+                        fontFamily = OutfitFontFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.accentSuccess,
+                        maxLines = 1
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -520,7 +534,10 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Flag,
                         contentDescription = null,
@@ -529,25 +546,33 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "DAILY ACTIVITY & CHALLENGES",
+                        text = "DAILY ACTIVITY",
                         fontFamily = OutfitFontFamily,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
                         color = colors.textPrimary,
-                        letterSpacing = 1.1.sp
+                        letterSpacing = 1.1.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                Text(
-                    text = "REWARDS HUB →",
-                    fontFamily = OutfitFontFamily,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.accentGold,
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .heightIn(min = 48.dp)
                         .clickable { onNavigate(AppScreen.DAILY_CHALLENGES) }
-                        .padding(6.dp)
+                        .padding(horizontal = 8.dp)
                         .testTag("home_open_daily_challenges_btn")
-                )
+                ) {
+                    Text(
+                        text = "REWARDS HUB →",
+                        fontFamily = OutfitFontFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.accentGold,
+                        maxLines = 1
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -637,7 +662,7 @@ fun HomeScreen(
                     .testTag("home_daily_challenges_section"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                uiState.dailyChallenges.take(3).forEach { challenge ->
+                uiState.dailyChallenges.take(2).forEach { challenge ->
                     val isClaimable = challenge.isCompleted && !challenge.isClaimed
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -746,9 +771,64 @@ fun HomeScreen(
                         }
                     }
                 }
+
+                // Current Featured Tournament Quick Strip
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = colors.surface,
+                    border = BorderStroke(1.dp, colors.accentGold.copy(alpha = 0.45f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clickable { onNavigate(AppScreen.CUP_SELECT) }
+                        .testTag("home_current_tournament_card")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.EmojiEvents,
+                                contentDescription = null,
+                                tint = colors.accentGold,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f, fill = false)) {
+                                Text(
+                                    text = "CURRENT TOURNAMENT • ${uiState.selectedCup.title.uppercase()}",
+                                    fontFamily = OutfitFontFamily,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = colors.accentGold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "${uiState.selectedCup.courseName} • Purse +${uiState.selectedCup.prizeCoins} Coins",
+                                    fontFamily = PlusJakartaSansFontFamily,
+                                    fontSize = 11.sp,
+                                    color = colors.textSecondary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Open Tournaments",
+                            tint = colors.accentGold
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // 6. PLAYER PROGRESS SNAPSHOT (Current Level, Recent Results, Career Stats, Upcoming Event)
             Row(
@@ -759,23 +839,33 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "PLAYER PROGRESS & STANDINGS",
+                    text = "PLAYER PROGRESS",
                     fontFamily = OutfitFontFamily,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Black,
                     color = colors.textPrimary,
-                    letterSpacing = 1.1.sp
+                    letterSpacing = 1.1.sp,
+                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "CAREER PROFILE →",
-                    fontFamily = OutfitFontFamily,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.accentSuccess,
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .heightIn(min = 48.dp)
                         .clickable { onNavigate(AppScreen.CAREER_STATS) }
-                        .padding(6.dp)
-                )
+                        .padding(horizontal = 8.dp)
+                        .testTag("home_career_profile_btn")
+                ) {
+                    Text(
+                        text = "CAREER PROFILE →",
+                        fontFamily = OutfitFontFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.accentSuccess,
+                        maxLines = 1
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -866,88 +956,50 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // 7. RECENT ACHIEVEMENTS SECTION
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.EmojiEvents,
-                        contentDescription = null,
-                        tint = colors.accentGold,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "RECENT ACHIEVEMENTS (${uiState.achievements.count { it.isUnlocked }}/${uiState.achievements.size})",
-                        fontFamily = OutfitFontFamily,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        color = colors.textPrimary,
-                        letterSpacing = 1.1.sp
-                    )
-                }
-                Text(
-                    text = "TROPHY ROOM →",
-                    fontFamily = OutfitFontFamily,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.accentSuccess,
+            // 7. LATEST ACHIEVEMENT SPOTLIGHT (Compact, decluttered milestone banner)
+            val spotlightAchievement = uiState.achievements.firstOrNull { it.isUnlocked } ?: uiState.achievements.firstOrNull()
+            if (spotlightAchievement != null) {
+                Column(
                     modifier = Modifier
-                        .clickable { onNavigate(AppScreen.CAREER_STATS) }
-                        .padding(6.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .testTag("home_recent_achievements_section"),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val sortedAchievements = uiState.achievements.sortedByDescending { it.isUnlocked }.take(3)
-                sortedAchievements.forEach { achievement ->
+                        .padding(horizontal = 16.dp)
+                        .testTag("home_recent_achievements_section")
+                ) {
                     Surface(
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(16.dp),
                         color = colors.surface,
                         border = BorderStroke(
                             1.dp,
-                            if (achievement.isUnlocked) colors.accentGold.copy(alpha = 0.65f) else colors.border
+                            if (spotlightAchievement.isUnlocked) colors.accentGold.copy(alpha = 0.65f) else colors.border
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .heightIn(min = 56.dp)
                             .clickable { onNavigate(AppScreen.CAREER_STATS) }
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(38.dp)
+                                    .size(40.dp)
                                     .background(
-                                        if (achievement.isUnlocked) colors.accentGold.copy(alpha = 0.18f) else colors.surfaceElevated,
+                                        if (spotlightAchievement.isUnlocked) colors.accentGold.copy(alpha = 0.18f) else colors.surfaceElevated,
                                         CircleShape
                                     )
                                     .border(
                                         1.dp,
-                                        if (achievement.isUnlocked) colors.accentGold else colors.border,
+                                        if (spotlightAchievement.isUnlocked) colors.accentGold else colors.border,
                                         CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = if (achievement.isUnlocked) Icons.Default.CheckCircle else Icons.Default.EmojiEvents,
+                                    imageVector = if (spotlightAchievement.isUnlocked) Icons.Default.CheckCircle else Icons.Default.EmojiEvents,
                                     contentDescription = null,
-                                    tint = if (achievement.isUnlocked) colors.accentGold else colors.textMuted,
+                                    tint = if (spotlightAchievement.isUnlocked) colors.accentGold else colors.textMuted,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -956,30 +1008,46 @@ fun HomeScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = achievement.title,
+                                    text = "LATEST ACHIEVEMENT • ${uiState.achievements.count { it.isUnlocked }}/${uiState.achievements.size} UNLOCKED",
+                                    fontFamily = OutfitFontFamily,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = colors.accentGold,
+                                    letterSpacing = 0.6.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = spotlightAchievement.title,
                                     fontFamily = OutfitFontFamily,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (achievement.isUnlocked) colors.textPrimary else colors.textSecondary
+                                    color = colors.textPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = achievement.description,
+                                    text = spotlightAchievement.description,
                                     fontFamily = PlusJakartaSansFontFamily,
                                     fontSize = 11.sp,
-                                    color = colors.textMuted
+                                    color = colors.textMuted,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
 
+                            Spacer(modifier = Modifier.width(8.dp))
+
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (achievement.isUnlocked) colors.accentGold.copy(alpha = 0.16f) else colors.surfaceElevated
+                                color = if (spotlightAchievement.isUnlocked) colors.accentGold.copy(alpha = 0.16f) else colors.surfaceElevated
                             ) {
                                 Text(
-                                    text = if (achievement.isUnlocked) "UNLOCKED • +${achievement.xpValue} XP" else "+${achievement.xpValue} XP",
+                                    text = if (spotlightAchievement.isUnlocked) "+${spotlightAchievement.xpValue} XP" else "VIEW ALL",
                                     fontFamily = OutfitFontFamily,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Black,
-                                    color = if (achievement.isUnlocked) colors.accentGold else colors.textMuted,
+                                    color = if (spotlightAchievement.isUnlocked) colors.accentGold else colors.textSecondary,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
@@ -988,11 +1056,11 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // 8. CLUBHOUSE & PRO FACILITIES
+            // 8. CLUBHOUSE & PRO STUDIO (2x2 clean grid without duplicate game mode rows)
             Text(
-                text = "CLUBHOUSE & PRO FACILITIES",
+                text = "CLUBHOUSE & PRO STUDIO",
                 fontFamily = OutfitFontFamily,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Black,
@@ -1007,60 +1075,74 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                ModeSelectionCard(
-                    title = "Equipment & Pro Shop",
-                    subtitle = "Upgrade Drivers, Irons, Wedges, Putters, Golf Balls, Outfits & Shop Bundles",
-                    icon = Icons.Default.ShoppingBag,
-                    accentColor = colors.accentGold,
-                    badge = "EQUIPMENT",
-                    onClick = { onNavigate(AppScreen.PRO_SHOP) }
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    DashboardQuickModeTile(
+                        title = "Pro Shop",
+                        subtitle = "Clubs, Balls, Apparel & Kits",
+                        badge = "ARMORY",
+                        icon = Icons.Default.ShoppingBag,
+                        accentColor = colors.accentGold,
+                        testTag = "mode_equipment",
+                        onClick = { onNavigate(AppScreen.PRO_SHOP) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    DashboardQuickModeTile(
+                        title = "Locker Room",
+                        subtitle = "Golfer Style, Stance & Skills",
+                        badge = "ATHLETE",
+                        icon = Icons.Default.Star,
+                        accentColor = colors.accentSuccess,
+                        testTag = "mode_locker room",
+                        onClick = { onNavigate(AppScreen.GOLFER_LOCKER_ROOM) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
-                ModeSelectionCard(
-                    title = "1v1 Match Play Showdown",
-                    subtitle = "Head-to-head match play against tour rivals (${uiState.career.matchPlayWins}W - ${uiState.career.matchPlayLosses}L)",
-                    icon = Icons.Default.SportsGolf,
-                    accentColor = colors.accentSuccess,
-                    badge = "NEW DUEL",
-                    onClick = { onNavigate(AppScreen.MATCH_PLAY_DUEL) }
-                )
-
-                ModeSelectionCard(
-                    title = "Course Selection & Architect",
-                    subtitle = "Browse championship courses or design custom holes in the sandbox",
-                    icon = Icons.Default.Palette,
-                    accentColor = ZenithEmerald,
-                    badge = "NEW FORGE",
-                    onClick = { onNavigate(AppScreen.COURSE_SELECTION) }
-                )
-
-                ModeSelectionCard(
-                    title = "Pro Golfer Locker Room",
-                    subtitle = "Customize ${uiState.golferProfile.golferName}'s stance, swing tempo, apparel & skill points",
-                    icon = Icons.Default.Star,
-                    accentColor = colors.accentGold,
-                    badge = "LOCKER ROOM",
-                    onClick = { onNavigate(AppScreen.GOLFER_LOCKER_ROOM) }
-                )
-
-                ModeSelectionCard(
-                    title = "AI Caddie & Custom Ball Studio",
-                    subtitle = "Live AI caddie shot strategy & custom golf ball studio",
-                    icon = Icons.Default.AutoAwesome,
-                    accentColor = colors.accentInfo,
-                    badge = "AICHAT",
-                    onClick = { onNavigate(AppScreen.CADDIE_CHAT) }
-                )
-
-                ModeSelectionCard(
-                    title = "Shot Replay & Telemetry Vault",
-                    subtitle = "Rewatch career highlight shots with launch angle, spin RPM & apex height",
-                    icon = Icons.Default.TrackChanges,
-                    accentColor = colors.accentGold,
-                    badge = "NEW CINEMA",
-                    onClick = { onNavigate(AppScreen.REPLAY_THEATER) }
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    DashboardQuickModeTile(
+                        title = "Tour Caddie",
+                        subtitle = "Live Strategy & Custom Balls",
+                        badge = "ADVISOR",
+                        icon = Icons.Default.AutoAwesome,
+                        accentColor = colors.accentInfo,
+                        testTag = "mode_caddie",
+                        onClick = { onNavigate(AppScreen.CADDIE_CHAT) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    DashboardQuickModeTile(
+                        title = "Shot Vault",
+                        subtitle = "Highlights & Telemetry",
+                        badge = "REPLAYS",
+                        icon = Icons.Default.TrackChanges,
+                        accentColor = ZenithEmerald,
+                        testTag = "mode_replays",
+                        onClick = { onNavigate(AppScreen.REPLAY_THEATER) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "ZENITH GOLF 2.0 • APEX DYNAMICS GAME STUDIOS",
+                fontFamily = OutfitFontFamily,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.textMuted,
+                letterSpacing = 1.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .testTag("home_studio_footer")
+            )
 
             if (showWhatsNewDialog) {
                 ZenithV2WhatsNewDialog(onDismiss = { showWhatsNewDialog = false })
@@ -1338,11 +1420,12 @@ private fun PlayerDashboardTopHeader(
                         color = colors.surfaceElevated,
                         border = BorderStroke(1.dp, colors.accentGold.copy(alpha = 0.5f)),
                         modifier = Modifier
+                            .heightIn(min = 48.dp)
                             .clickable { onCoinsClick() }
                             .testTag("home_coins_pill")
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(

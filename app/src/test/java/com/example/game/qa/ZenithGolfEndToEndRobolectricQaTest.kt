@@ -340,4 +340,107 @@ class ZenithGolfEndToEndRobolectricQaTest {
         composeRule.waitForIdle()
         assertEquals(com.example.game.model.ZenithThemeMode.LIGHT, vm.uiState.value.playSettings.themeMode)
     }
+
+    @Test
+    @Config(sdk = [36], qualifiers = "w800dp-h360dp-land-xhdpi")
+    fun `smartphoneLandscape - play hole HUD fits 800x360dp without badge overlap or power hud overflow`() {
+        val vm = GolfGameViewModel()
+        vm.startTournament()
+
+        composeRule.setContent {
+            MyApplicationTheme {
+                GolfAppRoot(viewModel = vm)
+            }
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag("play_hole_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("landscape_top_bar").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom_left_club_panel").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom_center_distance_badge").assertIsDisplayed()
+        composeRule.onNodeWithTag("drag_release_power_hud").assertIsDisplayed()
+        composeRule.onNodeWithTag("confirm_shot_button").assertIsDisplayed()
+
+        // Verify zero horizontal overlap across top-bar badges on 800dp landscape phone
+        val leftBadge = composeRule.onNodeWithTag("top_bar_hole_par_badge").getUnclippedBoundsInRoot()
+        val centerBadge = composeRule.onNodeWithTag("top_bar_stroke_badge").getUnclippedBoundsInRoot()
+        val rightBadge = composeRule.onNodeWithTag("top_bar_wind_badge").getUnclippedBoundsInRoot()
+        assertTrue(
+            "Hole badge right (${leftBadge.right}) must stay left of Stroke badge (${centerBadge.left})",
+            leftBadge.right <= centerBadge.left
+        )
+        assertTrue(
+            "Stroke badge right (${centerBadge.right}) must stay left of Wind badge (${rightBadge.left})",
+            centerBadge.right <= rightBadge.left
+        )
+
+        // Verify DragReleasePowerBarHud and confirm_shot_button stay inside 360dp vertical viewport
+        val powerHudBounds = composeRule.onNodeWithTag("drag_release_power_hud").getUnclippedBoundsInRoot()
+        val confirmShotBounds = composeRule.onNodeWithTag("confirm_shot_button").getUnclippedBoundsInRoot()
+        assertTrue(
+            "Power HUD top (${powerHudBounds.top}) must be >= 0.dp",
+            powerHudBounds.top >= 0.dp
+        )
+        assertTrue(
+            "Power HUD bottom (${powerHudBounds.bottom}) must stay inside 360.dp height",
+            powerHudBounds.bottom <= 360.dp
+        )
+        assertTrue(
+            "Confirm Shot button bottom (${confirmShotBounds.bottom}) must stay inside 360.dp height",
+            confirmShotBounds.bottom <= 360.dp
+        )
+    }
+
+    @Test
+    @Config(sdk = [36], qualifiers = "w360dp-h780dp-xxhdpi")
+    fun `smartphonePortrait360dp - redesigned home gameModes courses dailyRewards and settings layout integrity`() {
+        val vm = GolfGameViewModel()
+        composeRule.setContent {
+            MyApplicationTheme {
+                GolfAppRoot(viewModel = vm)
+            }
+        }
+        composeRule.waitForIdle()
+
+        // Home dashboard sections & studio footer
+        composeRule.onNodeWithTag("home_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_daily_challenges_section").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("home_current_tournament_card").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("home_player_progress_card").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("home_recent_achievements_section").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("home_studio_footer").performScrollTo().assertIsDisplayed()
+
+        // Game Modes -> Course Selection -> Back
+        composeRule.onNodeWithTag("bottom_nav_play").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("game_modes_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("game_modes_courses_btn").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("course_selection_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("course_selection_back_btn").performClick()
+        composeRule.waitForIdle()
+
+        // Daily Challenges -> Tour Pass -> Back
+        composeRule.onNodeWithTag("bottom_nav_rewards").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("daily_challenges_screen").assertIsDisplayed()
+        vm.navigateTo(AppScreen.TOUR_PASS)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("tour_pass_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("tour_pass_back_button").performClick()
+        composeRule.waitForIdle()
+
+        // Career Profile -> Pro Shop -> Settings -> Home
+        composeRule.onNodeWithTag("bottom_nav_profile").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("career_stats_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile_open_equipment_btn").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("pro_shop_screen").assertIsDisplayed()
+        composeRule.onNodeWithTag("pro_shop_back_btn").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("bottom_nav_home").performClick()
+        composeRule.waitForIdle()
+        assertEquals(AppScreen.HOME, vm.uiState.value.currentScreen)
+    }
 }

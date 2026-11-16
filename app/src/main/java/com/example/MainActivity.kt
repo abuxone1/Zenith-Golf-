@@ -518,7 +518,12 @@ fun GolfAppRoot(
                                 viewModel.onSwingDragUpdate(curPos, ballPos, maxPullPx)
                             },
                             onSwingDragRelease = { viewModel.onSwingDragRelease() },
-                            onSwingDragCancel = { viewModel.onSwingDragCancel() }
+                            onSwingDragCancel = { viewModel.onSwingDragCancel() },
+                            onConfirmShot = { viewModel.confirmAndExecuteShot() },
+                            onPauseGame = { viewModel.pauseGame() },
+                            onResumeGame = { viewModel.resumeGame() },
+                            onRestartHole = { viewModel.restartCurrentHole() },
+                            onSelectCameraMode = { mode -> viewModel.setCameraMode(mode) }
                         )
                     }
 

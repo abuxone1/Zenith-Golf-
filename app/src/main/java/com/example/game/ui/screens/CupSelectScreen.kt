@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -92,7 +94,10 @@ fun CupSelectScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier
@@ -106,21 +111,25 @@ fun CupSelectScreen(
                         )
                     }
                     Spacer(modifier = Modifier.width(4.dp))
-                    Column {
+                    Column(modifier = Modifier.padding(end = 8.dp)) {
                         Text(
                             text = "OFFICIAL TOUR SCHEDULE",
                             fontFamily = OutfitFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Black,
                             color = colors.accentGold,
-                            letterSpacing = 1.2.sp
+                            letterSpacing = 1.2.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "TOURNAMENTS",
                             fontFamily = OutfitFontFamily,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
-                            color = colors.textPrimary
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -216,16 +225,19 @@ fun CupSelectScreen(
 
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = colors.accentGold
+                            color = colors.accentGold,
+                            modifier = Modifier.heightIn(min = 48.dp)
                         ) {
-                            Text(
-                                text = "RANKINGS",
-                                fontFamily = OutfitFontFamily,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = colors.onGold,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "RANKINGS",
+                                    fontFamily = OutfitFontFamily,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = colors.onGold,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                                )
+                            }
                         }
                     }
                 }

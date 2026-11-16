@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -691,7 +692,10 @@ fun DailyTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
                 IconButton(
                     onClick = onBack,
                     modifier = Modifier
@@ -704,22 +708,26 @@ fun DailyTopBar(
                         tint = colors.textPrimary
                     )
                 }
-                Spacer(modifier = Modifier.width(6.dp))
-                Column {
+                Spacer(modifier = Modifier.width(4.dp))
+                Column(modifier = Modifier.padding(end = 8.dp)) {
                     Text(
                         text = "ZENITH TOUR REWARDS",
                         fontFamily = OutfitFontFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Black,
                         color = colors.accentGold,
-                        letterSpacing = 1.sp
+                        letterSpacing = 1.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "REWARDS & MISSIONS",
                         fontFamily = OutfitFontFamily,
-                        fontSize = 18.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Black,
-                        color = colors.textPrimary
+                        color = colors.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

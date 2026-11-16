@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -159,7 +161,10 @@ fun PlaySettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier
@@ -173,21 +178,25 @@ fun PlaySettingsScreen(
                         )
                     }
                     Spacer(modifier = Modifier.width(4.dp))
-                    Column {
+                    Column(modifier = Modifier.padding(end = 8.dp)) {
                         Text(
                             text = "APEX DYNAMICS • SYSTEM CONFIG",
                             fontFamily = OutfitFontFamily,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Black,
                             color = colors.accentGold,
-                            letterSpacing = 1.2.sp
+                            letterSpacing = 1.2.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "SETTINGS & ACCOUNT",
                             fontFamily = OutfitFontFamily,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
-                            color = colors.textPrimary
+                            color = colors.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -351,6 +360,7 @@ fun PlaySettingsScreen(
                                         ),
                                         modifier = Modifier
                                             .weight(1f)
+                                            .heightIn(min = 48.dp)
                                             .clickable {
                                                 onUpdateSettings(
                                                     settings.copy(
@@ -369,13 +379,17 @@ fun PlaySettingsScreen(
                                                 fontFamily = OutfitFontFamily,
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Black,
-                                                color = if (selected) colors.accentGold else colors.textPrimary
+                                                color = if (selected) colors.accentGold else colors.textPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                             Text(
                                                 text = "${tier.targetFps} FPS",
                                                 fontFamily = PlusJakartaSansFontFamily,
                                                 fontSize = 9.sp,
-                                                color = if (selected) colors.onForestSecondary else colors.textSecondary
+                                                color = if (selected) colors.onForestSecondary else colors.textSecondary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
                                     }

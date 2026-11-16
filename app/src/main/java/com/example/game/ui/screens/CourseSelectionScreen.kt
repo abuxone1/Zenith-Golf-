@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -166,7 +168,10 @@ fun CourseSelectionScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
                         IconButton(
                             onClick = onBack,
                             modifier = Modifier
@@ -180,21 +185,25 @@ fun CourseSelectionScreen(
                             )
                         }
                         Spacer(modifier = Modifier.width(4.dp))
-                        Column {
+                        Column(modifier = Modifier.padding(end = 8.dp)) {
                             Text(
                                 text = "WORLD TOUR VENUES",
                                 fontFamily = OutfitFontFamily,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
                                 color = colors.accentGold,
-                                letterSpacing = 1.2.sp
+                                letterSpacing = 1.2.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "COURSE SELECTION",
                                 fontFamily = OutfitFontFamily,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Black,
-                                color = colors.textPrimary
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -220,17 +229,20 @@ fun CourseSelectionScreen(
                             color = if (isSelected) colors.primaryGreen else colors.surfaceElevated,
                             border = BorderStroke(1.dp, if (isSelected) colors.accentGold else colors.border),
                             modifier = Modifier
+                                .heightIn(min = 48.dp)
                                 .clickable { selectedTierFilter = tier }
                                 .testTag("course_filter_${tier.lowercase()}")
                         ) {
-                            Text(
-                                text = tier,
-                                fontFamily = OutfitFontFamily,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black,
-                                color = if (isSelected) Color.White else colors.textSecondary,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                            )
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = tier,
+                                    fontFamily = OutfitFontFamily,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isSelected) Color.White else colors.textSecondary,
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                                )
+                            }
                         }
                     }
                 }

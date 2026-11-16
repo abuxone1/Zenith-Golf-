@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -512,6 +514,7 @@ fun SwingControlDeck(
 ) {
     Card(
         modifier = modifier
+            .widthIn(max = 680.dp)
             .fillMaxWidth()
             .testTag("swing_control_deck"),
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
@@ -840,19 +843,19 @@ fun ApexTimingBar(
                 Box(modifier = Modifier.weight(0.35f).height(44.dp).background(ZenithGold.copy(alpha = 0.25f)))
             }
 
-            // Moving needle
-            // Map -1.0..1.0 to 0.0..1.0
-            val normalizedX = (meterPosition + 1.0f) / 2.0f
-            Box(
+            // Moving needle scaled dynamically to available meter width
+            val normalizedX = ((meterPosition + 1.0f) / 2.0f).coerceIn(0f, 1f)
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp)
                     .padding(horizontal = 4.dp)
             ) {
+                val trackSpan = (maxWidth - 6.dp).coerceAtLeast(1.dp)
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(start = (normalizedX * 280).dp) // approximate pixel translation
+                        .padding(start = trackSpan * normalizedX)
                         .width(6.dp)
                         .height(38.dp)
                         .background(Color.White, RoundedCornerShape(3.dp))
