@@ -1,0 +1,498 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Legacy and unified user profile, career golf statistics and equipment loadout",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user UID matching request.auth.uid" },
+        "displayName": { "type": "string", "description": "Player display name (1-80 chars)" },
+        "email": { "type": "string", "description": "Player email address (0-160 chars)" },
+        "coins": { "type": "integer", "description": "Zenith Gold Coins" },
+        "trophies": { "type": "integer", "description": "Trophies count" },
+        "mulligansRemaining": { "type": "integer", "description": "Mulligans available" },
+        "roundsPlayed": { "type": "integer", "description": "Total tournament rounds played" },
+        "holesPlayed": { "type": "integer", "description": "Total holes completed" },
+        "birdies": { "type": "integer", "description": "Birdies score count" },
+        "eagles": { "type": "integer", "description": "Eagles score count" },
+        "aces": { "type": "integer", "description": "Hole in ones count" },
+        "longestDriveYds": { "type": "number", "description": "Longest recorded drive yardage" },
+        "tourXp": { "type": "integer", "description": "Current Season Tour Pass XP" },
+        "shootoutHighScore": { "type": "integer", "description": "High score in Bullseye Shootout" },
+        "equippedBallId": { "type": "string", "description": "ID of equipped ball" },
+        "equippedTracer": { "type": "string", "description": "Toptracer style label" },
+        "unlockedBallIds": { "type": "array", "description": "Bounded list of unlocked ball IDs (max 30)" },
+        "driverLevel": { "type": "integer", "description": "Driver upgrade level (1-10)" },
+        "wood3Level": { "type": "integer", "description": "3-Wood upgrade level (1-10)" },
+        "iron7Level": { "type": "integer", "description": "7-Iron upgrade level (1-10)" },
+        "wedgeLevel": { "type": "integer", "description": "Pitching Wedge upgrade level (1-10)" },
+        "putterLevel": { "type": "integer", "description": "Putter upgrade level (1-10)" },
+        "golferName": { "type": "string", "description": "Custom golfer name" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "coins", "trophies", "updatedAt"]
+    },
+    "TourPassProgress": {
+      "title": "TourPassProgress",
+      "description": "Player progress in Season 1 Zenith Tour Pass",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "User UID matching request.auth.uid" },
+        "currentXp": { "type": "integer", "description": "Total accumulated Tour XP" },
+        "claimedFreeTiers": { "type": "array", "description": "Bounded list of claimed free tier levels (max 50)" },
+        "claimedVipTiers": { "type": "array", "description": "Bounded list of claimed VIP tier levels (max 50)" },
+        "isVipUnlocked": { "type": "boolean", "description": "Whether VIP Gold Pass is activated" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "currentXp", "isVipUnlocked", "updatedAt"]
+    },
+    "PlayerDocument": {
+      "title": "PlayerDocument",
+      "description": "Core player identity, avatar reference, level, XP, and virtual currency",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "username": { "type": "string", "description": "Golfer username (1-80 chars)" },
+        "profileImageUrl": { "type": "string", "description": "Profile image reference URL or avatar key (0-500 chars)" },
+        "email": { "type": "string", "description": "Authenticated email (0-160 chars)" },
+        "playerLevel": { "type": "integer", "description": "Calculated player level (>= 1)" },
+        "xp": { "type": "integer", "description": "Total player XP (>= 0)" },
+        "coins": { "type": "integer", "description": "Zenith Gold Coins balance (>= 0)" },
+        "trophies": { "type": "integer", "description": "Total championship trophies (>= 0)" },
+        "mulligansRemaining": { "type": "integer", "description": "Available mulligans (>= 0)" },
+        "countryTag": { "type": "string", "description": "Player country/tour tag (0-64 chars)" },
+        "accountTier": { "type": "string", "description": "Account linkage status (e.g. GOOGLE_LINKED)" },
+        "clientUpdatedAtEpochMs": { "type": "integer", "description": "Client epoch timestamp for conflict resolution" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "username", "playerLevel", "xp", "coins", "updatedAt"]
+    },
+    "PlayerStatistics": {
+      "title": "PlayerStatistics",
+      "description": "Comprehensive player career statistics and scoring records",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "roundsPlayed": { "type": "integer", "description": "Total rounds completed (>= 0)" },
+        "holesPlayed": { "type": "integer", "description": "Total holes completed (>= 0)" },
+        "birdies": { "type": "integer", "description": "Total birdies scored (>= 0)" },
+        "eagles": { "type": "integer", "description": "Total eagles scored (>= 0)" },
+        "aces": { "type": "integer", "description": "Total holes-in-one scored (>= 0)" },
+        "longestDriveYds": { "type": "number", "description": "Longest drive distance in yards (>= 0)" },
+        "greensInRegulationCount": { "type": "integer", "description": "Greens in regulation count (>= 0)" },
+        "shootoutHighScore": { "type": "integer", "description": "Best Target Shootout score (>= 0)" },
+        "matchPlayWins": { "type": "integer", "description": "1v1 Match Play wins (>= 0)" },
+        "matchPlayLosses": { "type": "integer", "description": "1v1 Match Play losses (>= 0)" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "roundsPlayed", "holesPlayed", "birdies", "eagles", "aces", "longestDriveYds", "updatedAt"]
+    },
+    "PlayerInventory": {
+      "title": "PlayerInventory",
+      "description": "Player equipment levels, unlocked golf balls, tracer styles, and golfer apparel",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "equippedBallId": { "type": "string", "description": "Currently equipped golf ball ID" },
+        "equippedTracer": { "type": "string", "description": "Currently equipped ball flight tracer" },
+        "unlockedBallIds": { "type": "array", "description": "Bounded list of unlocked golf ball IDs (max 30)" },
+        "driverLevel": { "type": "integer", "description": "Driver upgrade level (1-10)" },
+        "wood3Level": { "type": "integer", "description": "3-Wood upgrade level (1-10)" },
+        "iron4Level": { "type": "integer", "description": "4-Iron upgrade level (1-10)" },
+        "iron7Level": { "type": "integer", "description": "7-Iron upgrade level (1-10)" },
+        "iron9Level": { "type": "integer", "description": "9-Iron upgrade level (1-10)" },
+        "wedgeLevel": { "type": "integer", "description": "Pitching Wedge upgrade level (1-10)" },
+        "sandWedgeLevel": { "type": "integer", "description": "Sand Wedge upgrade level (1-10)" },
+        "putterLevel": { "type": "integer", "description": "Putter upgrade level (1-10)" },
+        "visorColorHex": { "type": "integer", "description": "Golfer visor color hex" },
+        "poloColorHex": { "type": "integer", "description": "Golfer polo shirt color hex" },
+        "gloveStyle": { "type": "string", "description": "Equipped glove style name" },
+        "stance": { "type": "string", "description": "Golfer stance (RIGHT_HANDED or LEFT_HANDED)" },
+        "swingStyle": { "type": "string", "description": "Golfer swing archetype" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "equippedBallId", "equippedTracer", "unlockedBallIds", "driverLevel", "wood3Level", "iron7Level", "wedgeLevel", "putterLevel", "updatedAt"]
+    },
+    "PlayerProgress": {
+      "title": "PlayerProgress",
+      "description": "Career progression, unlocked courses, tour pass tiers, and synchronization metadata",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "playerLevel": { "type": "integer", "description": "Current career level (>= 1)" },
+        "tourXp": { "type": "integer", "description": "Accumulated Tour XP (>= 0)" },
+        "trophies": { "type": "integer", "description": "Accumulated trophies (>= 0)" },
+        "unlockedCourses": { "type": "array", "description": "Bounded list of unlocked course IDs (max 30)" },
+        "unlockedAchievementIds": { "type": "array", "description": "Bounded list of unlocked achievement IDs (max 50)" },
+        "completedChallengeIds": { "type": "array", "description": "Bounded list of completed daily challenge IDs (max 50)" },
+        "claimedChallengeIds": { "type": "array", "description": "Bounded list of claimed daily challenge IDs (max 50)" },
+        "claimedFreeTiers": { "type": "array", "description": "Bounded list of claimed free tour pass tiers (max 50)" },
+        "claimedVipTiers": { "type": "array", "description": "Bounded list of claimed VIP tour pass tiers (max 50)" },
+        "isVipUnlocked": { "type": "boolean", "description": "Whether VIP Tour Pass is unlocked" },
+        "syncRevision": { "type": "integer", "description": "Monotonically increasing sync revision counter" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "playerLevel", "tourXp", "trophies", "unlockedCourses", "isVipUnlocked", "updatedAt"]
+    },
+    "GameSettings": {
+      "title": "GameSettings",
+      "description": "Synchronized player graphics, audio, control, and assist preferences",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "isSoundEnabled": { "type": "boolean", "description": "Master sound effects toggle" },
+        "soundVolume": { "type": "number", "description": "Master sound volume (0.0 to 1.0)" },
+        "isHapticsEnabled": { "type": "boolean", "description": "Haptic vibration feedback toggle" },
+        "isCaddieAudioTipsEnabled": { "type": "boolean", "description": "AI caddie voice tips toggle" },
+        "isHighFpsMode": { "type": "boolean", "description": "High frame rate mode toggle" },
+        "isPuttingGridVisible": { "type": "boolean", "description": "Putting contour grid overlay toggle" },
+        "isSlopeBreakRadarVisible": { "type": "boolean", "description": "Putting slope break radar toggle" },
+        "isCloudSyncEnabled": { "type": "boolean", "description": "Automatic cloud save toggle" },
+        "graphicsTier": { "type": "string", "description": "Graphics scaling tier enum name" },
+        "aiDifficulty": { "type": "string", "description": "AI rival difficulty tier enum name" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "isSoundEnabled", "soundVolume", "isHapticsEnabled", "graphicsTier", "aiDifficulty", "updatedAt"]
+    },
+    "MatchHistoryRecord": {
+      "title": "MatchHistoryRecord",
+      "description": "Completed golf round or 1v1 match play history entry",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "mode": { "type": "string", "description": "Game mode (TOURNAMENT, QUICK_PLAY, MATCH_PLAY, SHOOTOUT)" },
+        "courseName": { "type": "string", "description": "Course name (1-80 chars)" },
+        "holesPlayed": { "type": "integer", "description": "Number of holes completed (1-18)" },
+        "totalStrokes": { "type": "integer", "description": "Total strokes taken (1-200)" },
+        "scoreToPar": { "type": "integer", "description": "Score relative to par (-36 to 100)" },
+        "scoreBanner": { "type": "string", "description": "Score summary label (e.g. BIRDIE! -1)" },
+        "coinsEarned": { "type": "integer", "description": "Coins earned in match (0-50000)" },
+        "xpEarned": { "type": "integer", "description": "XP earned in match (0-50000)" },
+        "opponentName": { "type": "string", "description": "Opponent or tournament cup name" },
+        "outcome": { "type": "string", "description": "Match result (WIN, COMPLETED, LOSS, DRAW)" },
+        "idempotencyKey": { "type": "string", "description": "Unique client/server submission key preventing duplicate score submissions" },
+        "holeStrokes": { "type": "array", "description": "Hole-by-hole stroke array (max 18)" },
+        "holePars": { "type": "array", "description": "Hole-by-hole par array (max 18)" },
+        "maxDriveYds": { "type": "number", "description": "Maximum drive distance recorded in round" },
+        "roundDurationSec": { "type": "integer", "description": "Total elapsed round duration in seconds" },
+        "verificationStatus": { "type": "string", "description": "Server score verification state (VERIFIED, FLAGGED)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "mode", "courseName", "holesPlayed", "totalStrokes", "scoreToPar", "coinsEarned", "xpEarned", "outcome", "createdAt"]
+    },
+    "TournamentDocument": {
+      "title": "TournamentDocument",
+      "description": "Championship tournament event metadata and prize pool",
+      "type": "object",
+      "properties": {
+        "tournamentId": { "type": "string", "description": "Unique tournament identifier" },
+        "title": { "type": "string", "description": "Tournament title (1-80 chars)" },
+        "courseName": { "type": "string", "description": "Host golf course name (1-80 chars)" },
+        "entryFeeCoins": { "type": "integer", "description": "Entry fee in coins (0-100000)" },
+        "prizeCoins": { "type": "integer", "description": "First place prize coins (0-500000)" },
+        "prizeTrophies": { "type": "integer", "description": "First place prize trophies (0-1000)" },
+        "holesCount": { "type": "integer", "description": "Number of tournament holes (1-18)" },
+        "difficulty": { "type": "string", "description": "Course difficulty label" },
+        "status": { "type": "string", "description": "Tournament state (SCHEDULED, OPEN, ACTIVE, COMPLETED)" },
+        "requiredTrophies": { "type": "integer", "description": "Minimum trophies required to register" },
+        "scheduledStartEpochMs": { "type": "integer", "description": "Scheduled start timestamp in epoch ms" },
+        "scheduledEndEpochMs": { "type": "integer", "description": "Scheduled end timestamp in epoch ms" },
+        "createdByAdminId": { "type": "string", "description": "Administrator UID who created/scheduled the event" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["tournamentId", "title", "courseName", "entryFeeCoins", "prizeCoins", "prizeTrophies", "holesCount", "difficulty", "status", "updatedAt"]
+    },
+    "TournamentEntry": {
+      "title": "TournamentEntry",
+      "description": "Validated player registration and scorecard in a tournament",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "tournamentId": { "type": "string", "description": "Tournament ID reference" },
+        "username": { "type": "string", "description": "Player display name (1-80 chars)" },
+        "strokes": { "type": "integer", "description": "Total strokes (1-200)" },
+        "scoreToPar": { "type": "integer", "description": "Score relative to par (-36 to 100)" },
+        "holesCompleted": { "type": "integer", "description": "Holes finished (1-18)" },
+        "rankPosition": { "type": "integer", "description": "Standing rank (1-1000)" },
+        "rewardCoinsAwarded": { "type": "integer", "description": "Verified prize coins awarded (0-50000)" },
+        "status": { "type": "string", "description": "Entry status (REGISTERED, IN_PROGRESS, COMPLETED, FINALIZED, LOCKED)" },
+        "holeStrokes": { "type": "array", "description": "Hole-by-hole verified stroke counts (max 18)" },
+        "submissionHash": { "type": "string", "description": "Idempotency/verification hash of score submission" },
+        "verificationStatus": { "type": "string", "description": "Score verification result (VERIFIED, FLAGGED)" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "tournamentId", "username", "strokes", "scoreToPar", "holesCompleted", "status", "updatedAt"]
+    },
+    "AchievementRecord": {
+      "title": "AchievementRecord",
+      "description": "Player achievement unlock state and XP reward record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "achievementId": { "type": "string", "description": "Achievement identifier" },
+        "title": { "type": "string", "description": "Achievement title (1-80 chars)" },
+        "description": { "type": "string", "description": "Achievement requirement description" },
+        "xpValue": { "type": "integer", "description": "XP reward (0-25000)" },
+        "isUnlocked": { "type": "boolean", "description": "Unlock status" },
+        "unlockedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "achievementId", "title", "xpValue", "isUnlocked", "unlockedAt"]
+    },
+    "DailyChallengeRecord": {
+      "title": "DailyChallengeRecord",
+      "description": "Player daily mission progress and claim state",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "challengeId": { "type": "string", "description": "Challenge identifier" },
+        "title": { "type": "string", "description": "Challenge title (1-80 chars)" },
+        "targetType": { "type": "string", "description": "Objective type code" },
+        "currentProgress": { "type": "integer", "description": "Current objective count (0-1000)" },
+        "targetGoal": { "type": "integer", "description": "Target objective count (1-1000)" },
+        "rewardCoins": { "type": "integer", "description": "Coin reward (0-10000)" },
+        "rewardMulligans": { "type": "integer", "description": "Mulligan reward (0-50)" },
+        "isCompleted": { "type": "boolean", "description": "Completion flag" },
+        "isClaimed": { "type": "boolean", "description": "Reward claimed flag" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "challengeId", "title", "targetType", "currentProgress", "targetGoal", "rewardCoins", "rewardMulligans", "isCompleted", "isClaimed", "updatedAt"]
+    },
+    "RewardTransaction": {
+      "title": "RewardTransaction",
+      "description": "Immutable audit log of player virtual currency and reward transactions",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "rewardType": { "type": "string", "description": "Reward category (HOLE_COMPLETION, DAILY_CHALLENGE, LUCKY_WHEEL, TOUR_PASS, TOURNAMENT_PRIZE, TOURNAMENT_ENTRY_FEE, ACHIEVEMENT_REWARD)" },
+        "sourceId": { "type": "string", "description": "Identifier of reward source" },
+        "coinsDelta": { "type": "integer", "description": "Coins granted or spent (-50000 to 50000)" },
+        "xpDelta": { "type": "integer", "description": "XP granted (0-50000)" },
+        "mulligansDelta": { "type": "integer", "description": "Mulligans granted or used (-50 to 50)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "rewardType", "sourceId", "coinsDelta", "xpDelta", "createdAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Championship tournament global leaderboard entry (non-PII public rankings)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "User UID matching request.auth.uid" },
+        "displayName": { "type": "string", "description": "Player display name (1-80 chars)" },
+        "trophies": { "type": "integer", "description": "Current trophies (>= 0)" },
+        "shootoutHighScore": { "type": "integer", "description": "Bullseye Shootout high score" },
+        "longestDriveYds": { "type": "number", "description": "Longest drive in yards" },
+        "playerLevel": { "type": "integer", "description": "Player career level (>= 1)" },
+        "bestTournamentScoreToPar": { "type": "integer", "description": "Best tournament score relative to par" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp via FieldValue.serverTimestamp()" }
+      },
+      "required": ["userId", "displayName", "trophies", "updatedAt"]
+    },
+    "TournamentRegistration": {
+      "title": "TournamentRegistration",
+      "description": "Verified player registration record for an official tournament",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID matching request.auth.uid" },
+        "tournamentId": { "type": "string", "description": "Tournament identifier" },
+        "username": { "type": "string", "description": "Player display name (1-80 chars)" },
+        "entryFeePaid": { "type": "integer", "description": "Entry fee coins deducted (0-100000)" },
+        "trophiesAtEntry": { "type": "integer", "description": "Player trophies at registration (>= 0)" },
+        "status": { "type": "string", "description": "Registration status (REGISTERED, SCORED, DISQUALIFIED)" },
+        "idempotencyKey": { "type": "string", "description": "Unique registration idempotency key" },
+        "registeredAt": { "type": "string", "format": "date-time", "description": "Server registration timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server update timestamp" }
+      },
+      "required": ["userId", "tournamentId", "username", "entryFeePaid", "trophiesAtEntry", "status", "registeredAt", "updatedAt"]
+    },
+    "AntiCheatFlag": {
+      "title": "AntiCheatFlag",
+      "description": "Server and physics telemetry anti-cheat incident report",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Flagged player UID" },
+        "matchId": { "type": "string", "description": "Associated match or scorecard ID" },
+        "tournamentId": { "type": "string", "description": "Optional tournament ID" },
+        "reasonCode": { "type": "string", "description": "Violation code (IMPOSSIBLE_STROKES, DRIVE_SPEED_EXCEEDED, DURATION_ANOMALY, DUPLICATE_SUBMISSION, SCORE_MISMATCH)" },
+        "severity": { "type": "string", "description": "Severity level (LOW, MEDIUM, HIGH, CRITICAL)" },
+        "details": { "type": "string", "description": "Diagnostic telemetry summary (1-300 chars)" },
+        "reportedStrokes": { "type": "integer", "description": "Reported total strokes" },
+        "reportedDriveYds": { "type": "number", "description": "Reported max drive distance in yards" },
+        "roundDurationSec": { "type": "integer", "description": "Reported round duration in seconds" },
+        "reviewStatus": { "type": "string", "description": "Admin review state (PENDING_REVIEW, CONFIRMED_CHEAT, CLEARED)" },
+        "reviewedBy": { "type": "string", "description": "Admin UID who reviewed the flag" },
+        "reviewNotes": { "type": "string", "description": "Admin resolution notes" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server update timestamp" }
+      },
+      "required": ["userId", "matchId", "reasonCode", "severity", "details", "reviewStatus", "createdAt", "updatedAt"]
+    },
+    "AuditLogRecord": {
+      "title": "AuditLogRecord",
+      "description": "Immutable append-only security and administrative audit log",
+      "type": "object",
+      "properties": {
+        "actorId": { "type": "string", "description": "UID of authenticated user or administrator performing the operation" },
+        "targetUserId": { "type": "string", "description": "UID of affected player" },
+        "actionType": { "type": "string", "description": "Operation code (SCORE_SUBMITTED, TOURNAMENT_REGISTERED, TOURNAMENT_SCORED, REWARD_CLAIMED, ACHIEVEMENT_VERIFIED, ADMIN_TOURNAMENT_CREATED, ADMIN_REWARD_CONFIGURED, ADMIN_CHALLENGE_PUBLISHED, ADMIN_ANTICHEAT_REVIEWED)" },
+        "resourceType": { "type": "string", "description": "Target collection or entity type" },
+        "resourceId": { "type": "string", "description": "Target document ID" },
+        "status": { "type": "string", "description": "Result status (SUCCESS, REJECTED, FLAGGED)" },
+        "metadataSummary": { "type": "string", "description": "Summary of validated parameters (1-300 chars)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["actorId", "targetUserId", "actionType", "resourceType", "resourceId", "status", "metadataSummary", "createdAt"]
+    },
+    "RateLimitRecord": {
+      "title": "RateLimitRecord",
+      "description": "Per-player API rate limit window state",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Player UID" },
+        "windowStartEpochMs": { "type": "integer", "description": "Start of active rate window in epoch ms" },
+        "requestCount": { "type": "integer", "description": "Requests made inside active window (1-60)" },
+        "lastAction": { "type": "string", "description": "Last executed endpoint action" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["userId", "windowStartEpochMs", "requestCount", "lastAction", "updatedAt"]
+    },
+    "StudioAdmin": {
+      "title": "StudioAdmin",
+      "description": "Apex Dynamics Game Studios authorized administrator record",
+      "type": "object",
+      "properties": {
+        "adminUid": { "type": "string", "description": "Administrator UID" },
+        "email": { "type": "string", "description": "Administrator email" },
+        "role": { "type": "string", "description": "Studio role (STUDIO_ADMIN, TOURNAMENT_DIRECTOR, SECURITY_ANALYST)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["adminUid", "role", "createdAt"]
+    },
+    "RewardConfig": {
+      "title": "RewardConfig",
+      "description": "Server-controlled reward calculation multipliers and payout table",
+      "type": "object",
+      "properties": {
+        "configId": { "type": "string", "description": "Configuration profile ID (e.g. default_season_config)" },
+        "holeCompletionBaseCoins": { "type": "integer", "description": "Base coins per completed hole (0-5000)" },
+        "birdieBonusCoins": { "type": "integer", "description": "Bonus coins per birdie (0-5000)" },
+        "eagleBonusCoins": { "type": "integer", "description": "Bonus coins per eagle (0-10000)" },
+        "aceBonusCoins": { "type": "integer", "description": "Bonus coins per hole-in-one (0-25000)" },
+        "tournamentFirstRatio": { "type": "number", "description": "1st place share of prize pool (0.1 to 1.0)" },
+        "tournamentSecondRatio": { "type": "number", "description": "2nd place share of prize pool (0.05 to 0.5)" },
+        "tournamentThirdRatio": { "type": "number", "description": "3rd place share of prize pool (0.05 to 0.35)" },
+        "updatedBy": { "type": "string", "description": "Administrator UID" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["configId", "holeCompletionBaseCoins", "birdieBonusCoins", "eagleBonusCoins", "aceBonusCoins", "tournamentFirstRatio", "tournamentSecondRatio", "tournamentThirdRatio", "updatedBy", "updatedAt"]
+    },
+    "PublishedChallenge": {
+      "title": "PublishedChallenge",
+      "description": "Studio-published official daily or weekly challenge definition",
+      "type": "object",
+      "properties": {
+        "challengeId": { "type": "string", "description": "Unique challenge ID" },
+        "title": { "type": "string", "description": "Challenge title (1-80 chars)" },
+        "description": { "type": "string", "description": "Challenge instructions (1-200 chars)" },
+        "targetType": { "type": "string", "description": "Objective type (BIRDIE_COUNT, DRIVE_DISTANCE, FAIRWAY_STREAK, ISLAND_ACCURACY, TOURNAMENT_FINISH)" },
+        "targetGoal": { "type": "integer", "description": "Target count (1-1000)" },
+        "rewardCoins": { "type": "integer", "description": "Coin reward (0-10000)" },
+        "rewardMulligans": { "type": "integer", "description": "Mulligan reward (0-50)" },
+        "isActive": { "type": "boolean", "description": "Whether challenge is active for players" },
+        "publishedBy": { "type": "string", "description": "Administrator UID" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp" }
+      },
+      "required": ["challengeId", "title", "description", "targetType", "targetGoal", "rewardCoins", "rewardMulligans", "isActive", "publishedBy", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Player career profile document isolated to owner"
+    },
+    "/users/{userId}/tourPass/{docId}": {
+      "schema": "TourPassProgress",
+      "description": "Season Tour Pass progress subcollection isolated to owner"
+    },
+    "/players/{userId}": {
+      "schema": "PlayerDocument",
+      "description": "Core player profile, level, XP, and coins isolated to owner"
+    },
+    "/player_statistics/{userId}": {
+      "schema": "PlayerStatistics",
+      "description": "Player career statistics isolated to owner"
+    },
+    "/player_inventory/{userId}": {
+      "schema": "PlayerInventory",
+      "description": "Player clubs, balls, and outfit inventory isolated to owner"
+    },
+    "/player_progress/{userId}": {
+      "schema": "PlayerProgress",
+      "description": "Player course unlocks, tour pass, and sync state isolated to owner"
+    },
+    "/game_settings/{userId}": {
+      "schema": "GameSettings",
+      "description": "Player game settings isolated to owner"
+    },
+    "/match_history/{matchId}": {
+      "schema": "MatchHistoryRecord",
+      "description": "Player match history logs isolated to owner"
+    },
+    "/tournaments/{tournamentId}": {
+      "schema": "TournamentDocument",
+      "description": "Championship tournaments directory"
+    },
+    "/tournament_entries/{entryId}": {
+      "schema": "TournamentEntry",
+      "description": "Validated tournament scorecards and entries"
+    },
+    "/achievements/{achievementDocId}": {
+      "schema": "AchievementRecord",
+      "description": "Player unlocked achievements isolated to owner"
+    },
+    "/daily_challenges/{challengeDocId}": {
+      "schema": "DailyChallengeRecord",
+      "description": "Player daily challenge progression isolated to owner"
+    },
+    "/reward_transactions/{txId}": {
+      "schema": "RewardTransaction",
+      "description": "Immutable reward and currency transaction ledger isolated to owner"
+    },
+    "/leaderboards/{userId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Top-level global leaderboard rankings"
+    },
+    "/leaderboards/{boardId}/entries/{userId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Board-scoped global tournament leaderboard ranking entries"
+    },
+    "/tournament_registrations/{regId}": {
+      "schema": "TournamentRegistration",
+      "description": "Verified player tournament registrations"
+    },
+    "/anti_cheat_flags/{flagId}": {
+      "schema": "AntiCheatFlag",
+      "description": "Server and physics telemetry anti-cheat flags"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLogRecord",
+      "description": "Immutable append-only security and admin audit trail"
+    },
+    "/rate_limits/{userId}": {
+      "schema": "RateLimitRecord",
+      "description": "Per-player API rate limit window tracking"
+    },
+    "/studio_admins/{adminUid}": {
+      "schema": "StudioAdmin",
+      "description": "Apex Dynamics Game Studios administrator directory"
+    },
+    "/reward_configs/{configId}": {
+      "schema": "RewardConfig",
+      "description": "Server-controlled reward calculation configurations"
+    },
+    "/published_challenges/{challengeId}": {
+      "schema": "PublishedChallenge",
+      "description": "Studio-published official daily and weekly challenges"
+    }
+  }
+}

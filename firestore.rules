@@ -1,0 +1,1002 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.get('admin', false) == true ||
+        exists(/databases/$(database)/documents/studio_admins/$(request.auth.uid))
+      );
+    }
+
+    // 3. Entity Validation Blueprints
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.coins is int && data.coins >= 0 &&
+             data.trophies is int && data.trophies >= 0 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('displayName' in data) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 80)) &&
+             (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 160)) &&
+             (!('mulligansRemaining' in data) || (data.mulligansRemaining is int && data.mulligansRemaining >= 0)) &&
+             (!('roundsPlayed' in data) || (data.roundsPlayed is int && data.roundsPlayed >= 0)) &&
+             (!('holesPlayed' in data) || (data.holesPlayed is int && data.holesPlayed >= 0)) &&
+             (!('birdies' in data) || (data.birdies is int && data.birdies >= 0)) &&
+             (!('eagles' in data) || (data.eagles is int && data.eagles >= 0)) &&
+             (!('aces' in data) || (data.aces is int && data.aces >= 0)) &&
+             (!('longestDriveYds' in data) || (data.longestDriveYds is number && data.longestDriveYds >= 0)) &&
+             (!('tourXp' in data) || (data.tourXp is int && data.tourXp >= 0)) &&
+             (!('shootoutHighScore' in data) || (data.shootoutHighScore is int && data.shootoutHighScore >= 0)) &&
+             (!('equippedBallId' in data) || data.equippedBallId == null || (data.equippedBallId is string && data.equippedBallId.size() <= 64)) &&
+             (!('equippedTracer' in data) || data.equippedTracer == null || (data.equippedTracer is string && data.equippedTracer.size() <= 64)) &&
+             (!('unlockedBallIds' in data) || (data.unlockedBallIds is list && data.unlockedBallIds.size() <= 30 && (data.unlockedBallIds.size() == 0 || (data.unlockedBallIds[0] is string && data.unlockedBallIds[0].size() <= 64)))) &&
+             (!('driverLevel' in data) || (data.driverLevel is int && data.driverLevel >= 1 && data.driverLevel <= 10)) &&
+             (!('wood3Level' in data) || (data.wood3Level is int && data.wood3Level >= 1 && data.wood3Level <= 10)) &&
+             (!('iron7Level' in data) || (data.iron7Level is int && data.iron7Level >= 1 && data.iron7Level <= 10)) &&
+             (!('wedgeLevel' in data) || (data.wedgeLevel is int && data.wedgeLevel >= 1 && data.wedgeLevel <= 10)) &&
+             (!('putterLevel' in data) || (data.putterLevel is int && data.putterLevel >= 1 && data.putterLevel <= 10)) &&
+             (!('golferName' in data) || data.golferName == null || (data.golferName is string && data.golferName.size() <= 64));
+    }
+
+    function isValidTourPass(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.currentXp is int && data.currentXp >= 0 &&
+             data.isVipUnlocked is bool &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('claimedFreeTiers' in data) || (data.claimedFreeTiers is list && data.claimedFreeTiers.size() <= 50 && (data.claimedFreeTiers.size() == 0 || data.claimedFreeTiers[0] is int))) &&
+             (!('claimedVipTiers' in data) || (data.claimedVipTiers is list && data.claimedVipTiers.size() <= 50 && (data.claimedVipTiers.size() == 0 || data.claimedVipTiers[0] is int)));
+    }
+
+    function isValidPlayerDocument(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.username is string && data.username.size() >= 1 && data.username.size() <= 80 &&
+             data.playerLevel is int && data.playerLevel >= 1 && data.playerLevel <= 500 &&
+             data.xp is int && data.xp >= 0 &&
+             data.coins is int && data.coins >= 0 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('profileImageUrl' in data) || data.profileImageUrl == null || (data.profileImageUrl is string && data.profileImageUrl.size() <= 500)) &&
+             (!('email' in data) || data.email == null || (data.email is string && data.email.size() <= 160)) &&
+             (!('trophies' in data) || (data.trophies is int && data.trophies >= 0)) &&
+             (!('mulligansRemaining' in data) || (data.mulligansRemaining is int && data.mulligansRemaining >= 0)) &&
+             (!('countryTag' in data) || data.countryTag == null || (data.countryTag is string && data.countryTag.size() <= 64)) &&
+             (!('accountTier' in data) || data.accountTier == null || (data.accountTier is string && data.accountTier.size() <= 32)) &&
+             (!('clientUpdatedAtEpochMs' in data) || (data.clientUpdatedAtEpochMs is int && data.clientUpdatedAtEpochMs >= 0));
+    }
+
+    function isValidPlayerStatistics(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.roundsPlayed is int && data.roundsPlayed >= 0 &&
+             data.holesPlayed is int && data.holesPlayed >= 0 &&
+             data.birdies is int && data.birdies >= 0 &&
+             data.eagles is int && data.eagles >= 0 &&
+             data.aces is int && data.aces >= 0 &&
+             data.longestDriveYds is number && data.longestDriveYds >= 0 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('greensInRegulationCount' in data) || (data.greensInRegulationCount is int && data.greensInRegulationCount >= 0)) &&
+             (!('shootoutHighScore' in data) || (data.shootoutHighScore is int && data.shootoutHighScore >= 0)) &&
+             (!('matchPlayWins' in data) || (data.matchPlayWins is int && data.matchPlayWins >= 0)) &&
+             (!('matchPlayLosses' in data) || (data.matchPlayLosses is int && data.matchPlayLosses >= 0));
+    }
+
+    function isValidPlayerInventory(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.equippedBallId is string && data.equippedBallId.size() >= 1 && data.equippedBallId.size() <= 64 &&
+             data.equippedTracer is string && data.equippedTracer.size() >= 1 && data.equippedTracer.size() <= 64 &&
+             data.unlockedBallIds is list && data.unlockedBallIds.size() <= 30 &&
+             (data.unlockedBallIds.size() == 0 || (data.unlockedBallIds[0] is string && data.unlockedBallIds[0].size() <= 64)) &&
+             data.driverLevel is int && data.driverLevel >= 1 && data.driverLevel <= 10 &&
+             data.wood3Level is int && data.wood3Level >= 1 && data.wood3Level <= 10 &&
+             data.iron7Level is int && data.iron7Level >= 1 && data.iron7Level <= 10 &&
+             data.wedgeLevel is int && data.wedgeLevel >= 1 && data.wedgeLevel <= 10 &&
+             data.putterLevel is int && data.putterLevel >= 1 && data.putterLevel <= 10 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('iron4Level' in data) || (data.iron4Level is int && data.iron4Level >= 1 && data.iron4Level <= 10)) &&
+             (!('iron9Level' in data) || (data.iron9Level is int && data.iron9Level >= 1 && data.iron9Level <= 10)) &&
+             (!('sandWedgeLevel' in data) || (data.sandWedgeLevel is int && data.sandWedgeLevel >= 1 && data.sandWedgeLevel <= 10)) &&
+             (!('visorColorHex' in data) || data.visorColorHex is int) &&
+             (!('poloColorHex' in data) || data.poloColorHex is int) &&
+             (!('gloveStyle' in data) || data.gloveStyle == null || (data.gloveStyle is string && data.gloveStyle.size() <= 64)) &&
+             (!('stance' in data) || data.stance == null || (data.stance is string && data.stance.size() <= 32)) &&
+             (!('swingStyle' in data) || data.swingStyle == null || (data.swingStyle is string && data.swingStyle.size() <= 48));
+    }
+
+    function isValidPlayerProgress(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.playerLevel is int && data.playerLevel >= 1 && data.playerLevel <= 500 &&
+             data.tourXp is int && data.tourXp >= 0 &&
+             data.trophies is int && data.trophies >= 0 &&
+             data.unlockedCourses is list && data.unlockedCourses.size() <= 30 &&
+             (data.unlockedCourses.size() == 0 || (data.unlockedCourses[0] is string && data.unlockedCourses[0].size() <= 64)) &&
+             data.isVipUnlocked is bool &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('unlockedAchievementIds' in data) || (data.unlockedAchievementIds is list && data.unlockedAchievementIds.size() <= 50 && (data.unlockedAchievementIds.size() == 0 || (data.unlockedAchievementIds[0] is string && data.unlockedAchievementIds[0].size() <= 64)))) &&
+             (!('completedChallengeIds' in data) || (data.completedChallengeIds is list && data.completedChallengeIds.size() <= 50 && (data.completedChallengeIds.size() == 0 || (data.completedChallengeIds[0] is string && data.completedChallengeIds[0].size() <= 64)))) &&
+             (!('claimedChallengeIds' in data) || (data.claimedChallengeIds is list && data.claimedChallengeIds.size() <= 50 && (data.claimedChallengeIds.size() == 0 || (data.claimedChallengeIds[0] is string && data.claimedChallengeIds[0].size() <= 64)))) &&
+             (!('claimedFreeTiers' in data) || (data.claimedFreeTiers is list && data.claimedFreeTiers.size() <= 50 && (data.claimedFreeTiers.size() == 0 || data.claimedFreeTiers[0] is int))) &&
+             (!('claimedVipTiers' in data) || (data.claimedVipTiers is list && data.claimedVipTiers.size() <= 50 && (data.claimedVipTiers.size() == 0 || data.claimedVipTiers[0] is int))) &&
+             (!('syncRevision' in data) || (data.syncRevision is int && data.syncRevision >= 0));
+    }
+
+    function isValidGameSettings(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.isSoundEnabled is bool &&
+             data.soundVolume is number && data.soundVolume >= 0 && data.soundVolume <= 1 &&
+             data.isHapticsEnabled is bool &&
+             data.graphicsTier is string && data.graphicsTier.size() >= 1 && data.graphicsTier.size() <= 32 &&
+             data.aiDifficulty is string && data.aiDifficulty.size() >= 1 && data.aiDifficulty.size() <= 32 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('isCaddieAudioTipsEnabled' in data) || data.isCaddieAudioTipsEnabled is bool) &&
+             (!('isHighFpsMode' in data) || data.isHighFpsMode is bool) &&
+             (!('isPuttingGridVisible' in data) || data.isPuttingGridVisible is bool) &&
+             (!('isSlopeBreakRadarVisible' in data) || data.isSlopeBreakRadarVisible is bool) &&
+             (!('isCloudSyncEnabled' in data) || data.isCloudSyncEnabled is bool);
+    }
+
+    function isValidMatchHistoryRecord(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.mode is string && data.mode.size() >= 1 && data.mode.size() <= 40 &&
+             data.courseName is string && data.courseName.size() >= 1 && data.courseName.size() <= 80 &&
+             data.holesPlayed is int && data.holesPlayed >= 1 && data.holesPlayed <= 18 &&
+             data.totalStrokes is int && data.totalStrokes >= data.holesPlayed && data.totalStrokes <= 200 &&
+             data.scoreToPar is int && data.scoreToPar >= -36 && data.scoreToPar <= 100 &&
+             data.coinsEarned is int && data.coinsEarned >= 0 && data.coinsEarned <= 50000 &&
+             data.xpEarned is int && data.xpEarned >= 0 && data.xpEarned <= 50000 &&
+             data.outcome is string && data.outcome.size() >= 1 && data.outcome.size() <= 32 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('scoreBanner' in data) || data.scoreBanner == null || (data.scoreBanner is string && data.scoreBanner.size() <= 48)) &&
+             (!('opponentName' in data) || data.opponentName == null || (data.opponentName is string && data.opponentName.size() <= 80)) &&
+             (!('idempotencyKey' in data) || data.idempotencyKey == null || (data.idempotencyKey is string && data.idempotencyKey.size() >= 1 && data.idempotencyKey.size() <= 128)) &&
+             (!('holeStrokes' in data) || (data.holeStrokes is list && data.holeStrokes.size() <= 18 && (data.holeStrokes.size() == 0 || (data.holeStrokes[0] is int && data.holeStrokes[0] >= 1 && data.holeStrokes[0] <= 20)))) &&
+             (!('holePars' in data) || (data.holePars is list && data.holePars.size() <= 18 && (data.holePars.size() == 0 || (data.holePars[0] is int && data.holePars[0] >= 3 && data.holePars[0] <= 5)))) &&
+             (!('maxDriveYds' in data) || (data.maxDriveYds is number && data.maxDriveYds >= 0 && data.maxDriveYds <= 430)) &&
+             (!('roundDurationSec' in data) || (data.roundDurationSec is int && data.roundDurationSec >= 0 && data.roundDurationSec <= 86400)) &&
+             (!('verificationStatus' in data) || (data.verificationStatus is string && data.verificationStatus.size() <= 32));
+    }
+
+    function isValidTournamentDocument(data) {
+      return data.tournamentId is string && data.tournamentId.size() >= 1 && data.tournamentId.size() <= 64 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.courseName is string && data.courseName.size() >= 1 && data.courseName.size() <= 80 &&
+             data.entryFeeCoins is int && data.entryFeeCoins >= 0 && data.entryFeeCoins <= 100000 &&
+             data.prizeCoins is int && data.prizeCoins >= 0 && data.prizeCoins <= 500000 &&
+             data.prizeTrophies is int && data.prizeTrophies >= 0 && data.prizeTrophies <= 1000 &&
+             data.holesCount is int && data.holesCount >= 1 && data.holesCount <= 18 &&
+             data.difficulty is string && data.difficulty.size() >= 1 && data.difficulty.size() <= 32 &&
+             data.status is string && data.status.size() >= 1 && data.status.size() <= 32 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('requiredTrophies' in data) || (data.requiredTrophies is int && data.requiredTrophies >= 0 && data.requiredTrophies <= 50000)) &&
+             (!('scheduledStartEpochMs' in data) || (data.scheduledStartEpochMs is int && data.scheduledStartEpochMs >= 0)) &&
+             (!('scheduledEndEpochMs' in data) || (data.scheduledEndEpochMs is int && data.scheduledEndEpochMs >= 0)) &&
+             (!('createdByAdminId' in data) || data.createdByAdminId == null || (data.createdByAdminId is string && data.createdByAdminId.size() <= 128));
+    }
+
+    function isValidTournamentEntry(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.tournamentId is string && data.tournamentId.size() >= 1 && data.tournamentId.size() <= 64 &&
+             data.username is string && data.username.size() >= 1 && data.username.size() <= 80 &&
+             data.strokes is int && data.strokes >= data.holesCompleted && data.strokes <= 200 &&
+             data.scoreToPar is int && data.scoreToPar >= -36 && data.scoreToPar <= 100 &&
+             data.holesCompleted is int && data.holesCompleted >= 1 && data.holesCompleted <= 18 &&
+             data.status is string && data.status.size() >= 1 && data.status.size() <= 32 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('rankPosition' in data) || (data.rankPosition is int && data.rankPosition >= 1 && data.rankPosition <= 1000)) &&
+             (!('rewardCoinsAwarded' in data) || (data.rewardCoinsAwarded is int && data.rewardCoinsAwarded >= 0 && data.rewardCoinsAwarded <= 50000)) &&
+             (!('holeStrokes' in data) || (data.holeStrokes is list && data.holeStrokes.size() <= 18 && (data.holeStrokes.size() == 0 || (data.holeStrokes[0] is int && data.holeStrokes[0] >= 1 && data.holeStrokes[0] <= 20)))) &&
+             (!('submissionHash' in data) || data.submissionHash == null || (data.submissionHash is string && data.submissionHash.size() <= 128)) &&
+             (!('verificationStatus' in data) || (data.verificationStatus is string && data.verificationStatus.size() <= 32));
+    }
+
+    function isValidAchievementRecord(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.achievementId is string && data.achievementId.size() >= 1 && data.achievementId.size() <= 64 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.xpValue is int && data.xpValue >= 0 && data.xpValue <= 25000 &&
+             data.isUnlocked is bool &&
+             data.unlockedAt is timestamp && data.unlockedAt <= request.time &&
+             (!('description' in data) || data.description == null || (data.description is string && data.description.size() <= 200));
+    }
+
+    function isValidDailyChallengeRecord(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.challengeId is string && data.challengeId.size() >= 1 && data.challengeId.size() <= 64 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.targetType is string && data.targetType.size() >= 1 && data.targetType.size() <= 48 &&
+             data.currentProgress is int && data.currentProgress >= 0 && data.currentProgress <= 1000 &&
+             data.targetGoal is int && data.targetGoal >= 1 && data.targetGoal <= 1000 &&
+             data.rewardCoins is int && data.rewardCoins >= 0 && data.rewardCoins <= 10000 &&
+             data.rewardMulligans is int && data.rewardMulligans >= 0 && data.rewardMulligans <= 50 &&
+             data.isCompleted is bool &&
+             data.isClaimed is bool &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidRewardTransaction(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.rewardType is string && data.rewardType.size() >= 1 && data.rewardType.size() <= 48 &&
+             data.sourceId is string && data.sourceId.size() >= 1 && data.sourceId.size() <= 80 &&
+             data.coinsDelta is int && data.coinsDelta >= -50000 && data.coinsDelta <= 50000 &&
+             data.xpDelta is int && data.xpDelta >= 0 && data.xpDelta <= 50000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             (!('mulligansDelta' in data) || (data.mulligansDelta is int && data.mulligansDelta >= -50 && data.mulligansDelta <= 50));
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.trophies is int && data.trophies >= 0 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('shootoutHighScore' in data) || (data.shootoutHighScore is int && data.shootoutHighScore >= 0)) &&
+             (!('longestDriveYds' in data) || (data.longestDriveYds is number && data.longestDriveYds >= 0)) &&
+             (!('playerLevel' in data) || (data.playerLevel is int && data.playerLevel >= 1 && data.playerLevel <= 500)) &&
+             (!('bestTournamentScoreToPar' in data) || (data.bestTournamentScoreToPar is int && data.bestTournamentScoreToPar >= -36 && data.bestTournamentScoreToPar <= 100));
+    }
+
+    function isValidTournamentRegistration(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.tournamentId is string && data.tournamentId.size() >= 1 && data.tournamentId.size() <= 64 &&
+             data.username is string && data.username.size() >= 1 && data.username.size() <= 80 &&
+             data.entryFeePaid is int && data.entryFeePaid >= 0 && data.entryFeePaid <= 100000 &&
+             data.trophiesAtEntry is int && data.trophiesAtEntry >= 0 &&
+             data.status is string && data.status in ['REGISTERED', 'SCORED', 'DISQUALIFIED'] &&
+             data.registeredAt is timestamp && data.registeredAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('idempotencyKey' in data) || data.idempotencyKey == null || (data.idempotencyKey is string && data.idempotencyKey.size() <= 128));
+    }
+
+    function isValidAntiCheatFlag(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.matchId is string && data.matchId.size() >= 1 && data.matchId.size() <= 128 &&
+             data.reasonCode is string && data.reasonCode.size() >= 1 && data.reasonCode.size() <= 64 &&
+             data.severity is string && data.severity in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] &&
+             data.details is string && data.details.size() >= 1 && data.details.size() <= 300 &&
+             data.reviewStatus is string && data.reviewStatus in ['PENDING_REVIEW', 'CONFIRMED_CHEAT', 'CLEARED'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time &&
+             (!('tournamentId' in data) || data.tournamentId == null || (data.tournamentId is string && data.tournamentId.size() <= 64)) &&
+             (!('reportedStrokes' in data) || (data.reportedStrokes is int && data.reportedStrokes >= 0)) &&
+             (!('reportedDriveYds' in data) || (data.reportedDriveYds is number && data.reportedDriveYds >= 0)) &&
+             (!('roundDurationSec' in data) || (data.roundDurationSec is int && data.roundDurationSec >= 0)) &&
+             (!('reviewedBy' in data) || data.reviewedBy == null || (data.reviewedBy is string && data.reviewedBy.size() <= 128)) &&
+             (!('reviewNotes' in data) || data.reviewNotes == null || (data.reviewNotes is string && data.reviewNotes.size() <= 300));
+    }
+
+    function isValidAuditLogRecord(data) {
+      return data.actorId is string && data.actorId.size() >= 1 && data.actorId.size() <= 128 &&
+             data.actorId == request.auth.uid &&
+             data.targetUserId is string && data.targetUserId.size() >= 1 && data.targetUserId.size() <= 128 &&
+             data.actionType is string && data.actionType.size() >= 1 && data.actionType.size() <= 64 &&
+             data.resourceType is string && data.resourceType.size() >= 1 && data.resourceType.size() <= 64 &&
+             data.resourceId is string && data.resourceId.size() >= 1 && data.resourceId.size() <= 128 &&
+             data.status is string && data.status in ['SUCCESS', 'REJECTED', 'FLAGGED'] &&
+             data.metadataSummary is string && data.metadataSummary.size() >= 1 && data.metadataSummary.size() <= 300 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidRateLimitRecord(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.windowStartEpochMs is int && data.windowStartEpochMs >= 0 &&
+             data.requestCount is int && data.requestCount >= 1 && data.requestCount <= 60 &&
+             data.lastAction is string && data.lastAction.size() >= 1 && data.lastAction.size() <= 64 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidRewardConfig(data) {
+      return data.configId is string && data.configId.size() >= 1 && data.configId.size() <= 64 &&
+             data.holeCompletionBaseCoins is int && data.holeCompletionBaseCoins >= 0 && data.holeCompletionBaseCoins <= 5000 &&
+             data.birdieBonusCoins is int && data.birdieBonusCoins >= 0 && data.birdieBonusCoins <= 5000 &&
+             data.eagleBonusCoins is int && data.eagleBonusCoins >= 0 && data.eagleBonusCoins <= 10000 &&
+             data.aceBonusCoins is int && data.aceBonusCoins >= 0 && data.aceBonusCoins <= 25000 &&
+             data.tournamentFirstRatio is number && data.tournamentFirstRatio >= 0.1 && data.tournamentFirstRatio <= 1.0 &&
+             data.tournamentSecondRatio is number && data.tournamentSecondRatio >= 0.05 && data.tournamentSecondRatio <= 0.5 &&
+             data.tournamentThirdRatio is number && data.tournamentThirdRatio >= 0.05 && data.tournamentThirdRatio <= 0.35 &&
+             data.updatedBy is string && data.updatedBy == request.auth.uid &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPublishedChallenge(data) {
+      return data.challengeId is string && data.challengeId.size() >= 1 && data.challengeId.size() <= 64 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 200 &&
+             data.targetType is string && data.targetType.size() >= 1 && data.targetType.size() <= 48 &&
+             data.targetGoal is int && data.targetGoal >= 1 && data.targetGoal <= 1000 &&
+             data.rewardCoins is int && data.rewardCoins >= 0 && data.rewardCoins <= 10000 &&
+             data.rewardMulligans is int && data.rewardMulligans >= 0 && data.rewardMulligans <= 50 &&
+             data.isActive is bool &&
+             data.publishedBy is string && data.publishedBy == request.auth.uid &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 4. Legacy User Profile & Tour Pass Subcollection (Owner-Isolated)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'coins', 'trophies', 'updatedAt']) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'email', 'coins', 'trophies',
+                         'mulligansRemaining', 'roundsPlayed', 'holesPlayed',
+                         'birdies', 'eagles', 'aces', 'longestDriveYds',
+                         'tourXp', 'shootoutHighScore', 'equippedBallId',
+                         'equippedTracer', 'unlockedBallIds', 'driverLevel',
+                         'wood3Level', 'iron7Level', 'wedgeLevel', 'putterLevel',
+                         'golferName', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'email', 'coins', 'trophies',
+                         'mulligansRemaining', 'roundsPlayed', 'holesPlayed',
+                         'birdies', 'eagles', 'aces', 'longestDriveYds',
+                         'tourXp', 'shootoutHighScore', 'equippedBallId',
+                         'equippedTracer', 'unlockedBallIds', 'driverLevel',
+                         'wood3Level', 'iron7Level', 'wedgeLevel', 'putterLevel',
+                         'golferName', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      match /tourPass/{docId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(docId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(docId) &&
+                         request.auth.uid == userId &&
+                         incoming().keys().hasAll(['userId', 'currentXp', 'isVipUnlocked', 'updatedAt']) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'currentXp', 'claimedFreeTiers',
+                           'claimedVipTiers', 'isVipUnlocked', 'updatedAt'
+                         ]) &&
+                         isValidTourPass(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(docId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         isValidTourPass(incoming()) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'currentXp', 'claimedFreeTiers',
+                           'claimedVipTiers', 'isVipUnlocked', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(docId) && request.auth.uid == userId;
+      }
+    }
+
+    // 5. Collection 1: players (Owner-Isolated Core Player Identity)
+    match /players/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'username', 'playerLevel', 'xp', 'coins', 'updatedAt']) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'username', 'profileImageUrl', 'email',
+                         'playerLevel', 'xp', 'coins', 'trophies',
+                         'mulligansRemaining', 'countryTag', 'accountTier',
+                         'clientUpdatedAtEpochMs', 'updatedAt'
+                       ]) &&
+                       isValidPlayerDocument(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidPlayerDocument(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'username', 'profileImageUrl', 'email',
+                         'playerLevel', 'xp', 'coins', 'trophies',
+                         'mulligansRemaining', 'countryTag', 'accountTier',
+                         'clientUpdatedAtEpochMs', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 6. Collection 2: player_statistics (Owner-Isolated Career Statistics)
+    match /player_statistics/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'roundsPlayed', 'holesPlayed', 'birdies',
+                         'eagles', 'aces', 'longestDriveYds', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'roundsPlayed', 'holesPlayed', 'birdies',
+                         'eagles', 'aces', 'longestDriveYds', 'greensInRegulationCount',
+                         'shootoutHighScore', 'matchPlayWins', 'matchPlayLosses', 'updatedAt'
+                       ]) &&
+                       isValidPlayerStatistics(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidPlayerStatistics(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'roundsPlayed', 'holesPlayed', 'birdies',
+                         'eagles', 'aces', 'longestDriveYds', 'greensInRegulationCount',
+                         'shootoutHighScore', 'matchPlayWins', 'matchPlayLosses', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 7. Collection 3: player_inventory (Owner-Isolated Equipment & Outfits)
+    match /player_inventory/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'equippedBallId', 'equippedTracer', 'unlockedBallIds',
+                         'driverLevel', 'wood3Level', 'iron7Level', 'wedgeLevel',
+                         'putterLevel', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'equippedBallId', 'equippedTracer', 'unlockedBallIds',
+                         'driverLevel', 'wood3Level', 'iron4Level', 'iron7Level',
+                         'iron9Level', 'wedgeLevel', 'sandWedgeLevel', 'putterLevel',
+                         'visorColorHex', 'poloColorHex', 'gloveStyle', 'stance',
+                         'swingStyle', 'updatedAt'
+                       ]) &&
+                       isValidPlayerInventory(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidPlayerInventory(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'equippedBallId', 'equippedTracer', 'unlockedBallIds',
+                         'driverLevel', 'wood3Level', 'iron4Level', 'iron7Level',
+                         'iron9Level', 'wedgeLevel', 'sandWedgeLevel', 'putterLevel',
+                         'visorColorHex', 'poloColorHex', 'gloveStyle', 'stance',
+                         'swingStyle', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 8. Collection 4: player_progress (Owner-Isolated Career & Course Unlocks)
+    match /player_progress/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'playerLevel', 'tourXp', 'trophies',
+                         'unlockedCourses', 'isVipUnlocked', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'playerLevel', 'tourXp', 'trophies',
+                         'unlockedCourses', 'unlockedAchievementIds',
+                         'completedChallengeIds', 'claimedChallengeIds',
+                         'claimedFreeTiers', 'claimedVipTiers',
+                         'isVipUnlocked', 'syncRevision', 'updatedAt'
+                       ]) &&
+                       isValidPlayerProgress(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidPlayerProgress(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'playerLevel', 'tourXp', 'trophies',
+                         'unlockedCourses', 'unlockedAchievementIds',
+                         'completedChallengeIds', 'claimedChallengeIds',
+                         'claimedFreeTiers', 'claimedVipTiers',
+                         'isVipUnlocked', 'syncRevision', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 9. Collection 5: game_settings (Owner-Isolated Preferences)
+    match /game_settings/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'isSoundEnabled', 'soundVolume',
+                         'isHapticsEnabled', 'graphicsTier', 'aiDifficulty', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'isSoundEnabled', 'soundVolume', 'isHapticsEnabled',
+                         'isCaddieAudioTipsEnabled', 'isHighFpsMode',
+                         'isPuttingGridVisible', 'isSlopeBreakRadarVisible',
+                         'isCloudSyncEnabled', 'graphicsTier', 'aiDifficulty', 'updatedAt'
+                       ]) &&
+                       isValidGameSettings(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidGameSettings(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'isSoundEnabled', 'soundVolume', 'isHapticsEnabled',
+                         'isCaddieAudioTipsEnabled', 'isHighFpsMode',
+                         'isPuttingGridVisible', 'isSlopeBreakRadarVisible',
+                         'isCloudSyncEnabled', 'graphicsTier', 'aiDifficulty', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 10. Collection 6: match_history (Owner-Isolated Match Records, Immutable Scores)
+    match /match_history/{matchId} {
+      allow get: if isSignedIn() && isValidId(matchId) && (
+        (resource == null && matchId.matches('^match_' + request.auth.uid + '_.*')) ||
+        (resource != null && (existing().userId == request.auth.uid || isAdmin()))
+      );
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+                       isValidId(matchId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'mode', 'courseName', 'holesPlayed',
+                         'totalStrokes', 'scoreToPar', 'coinsEarned',
+                         'xpEarned', 'outcome', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'mode', 'courseName', 'holesPlayed',
+                         'totalStrokes', 'scoreToPar', 'scoreBanner',
+                         'coinsEarned', 'xpEarned', 'opponentName',
+                         'outcome', 'idempotencyKey', 'holeStrokes',
+                         'holePars', 'maxDriveYds', 'roundDurationSec',
+                         'verificationStatus', 'createdAt'
+                       ]) &&
+                       isValidMatchHistoryRecord(incoming());
+
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(matchId) && existing().userId == request.auth.uid;
+    }
+
+    // 11. Collection 7: tournaments (Authenticated Tournament Directory & Admin Management)
+    match /tournaments/{tournamentId} {
+      allow get: if isSignedIn() && isValidId(tournamentId);
+      allow list: if isSignedIn() && existing().prizeCoins >= 0;
+
+      allow create: if isSignedIn() &&
+                       isValidId(tournamentId) &&
+                       incoming().tournamentId == tournamentId &&
+                       incoming().keys().hasAll([
+                         'tournamentId', 'title', 'courseName', 'entryFeeCoins',
+                         'prizeCoins', 'prizeTrophies', 'holesCount',
+                         'difficulty', 'status', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'tournamentId', 'title', 'courseName', 'entryFeeCoins',
+                         'prizeCoins', 'prizeTrophies', 'holesCount',
+                         'difficulty', 'status', 'requiredTrophies',
+                         'scheduledStartEpochMs', 'scheduledEndEpochMs',
+                         'createdByAdminId', 'updatedAt'
+                       ]) &&
+                       isValidTournamentDocument(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(tournamentId) &&
+                       incoming().tournamentId == existing().tournamentId &&
+                       isValidTournamentDocument(incoming()) &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) ||
+                         (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'courseName', 'entryFeeCoins', 'prizeCoins',
+                           'prizeTrophies', 'holesCount', 'difficulty', 'status',
+                           'requiredTrophies', 'scheduledStartEpochMs',
+                           'scheduledEndEpochMs', 'updatedAt'
+                         ]))
+                       );
+
+      allow delete: if false;
+    }
+
+    // 12. Collection 8: tournament_entries (Owner-Write Validated Scorecards, Tamper-Protected)
+    match /tournament_entries/{entryId} {
+      allow get: if isSignedIn() && isValidId(entryId);
+      allow list: if isSignedIn() && existing().strokes >= 1;
+
+      allow create: if isSignedIn() &&
+                       isValidId(entryId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'tournamentId', 'username', 'strokes',
+                         'scoreToPar', 'holesCompleted', 'status', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'tournamentId', 'username', 'strokes',
+                         'scoreToPar', 'holesCompleted', 'rankPosition',
+                         'rewardCoinsAwarded', 'status', 'holeStrokes',
+                         'submissionHash', 'verificationStatus', 'updatedAt'
+                       ]) &&
+                       isValidTournamentEntry(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(entryId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().tournamentId == existing().tournamentId &&
+                       existing().status != 'LOCKED' &&
+                       existing().status != 'FINALIZED' &&
+                       isValidTournamentEntry(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'username', 'strokes', 'scoreToPar', 'holesCompleted',
+                         'rankPosition', 'rewardCoinsAwarded', 'status',
+                         'holeStrokes', 'submissionHash', 'verificationStatus', 'updatedAt'
+                       ]);
+
+      allow delete: if false;
+    }
+
+    // 13. Collection 9: achievements (Owner-Isolated Achievement Records)
+    match /achievements/{achievementDocId} {
+      allow get: if isSignedIn() && isValidId(achievementDocId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(achievementDocId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'achievementId', 'title',
+                         'xpValue', 'isUnlocked', 'unlockedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'achievementId', 'title', 'description',
+                         'xpValue', 'isUnlocked', 'unlockedAt'
+                       ]) &&
+                       isValidAchievementRecord(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(achievementDocId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().achievementId == existing().achievementId &&
+                       isValidAchievementRecord(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'title', 'description', 'xpValue', 'isUnlocked', 'unlockedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(achievementDocId) && existing().userId == request.auth.uid;
+    }
+
+    // 14. Collection 10: daily_challenges (Owner-Isolated Mission Progression)
+    match /daily_challenges/{challengeDocId} {
+      allow get: if isSignedIn() && isValidId(challengeDocId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(challengeDocId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'challengeId', 'title', 'targetType',
+                         'currentProgress', 'targetGoal', 'rewardCoins',
+                         'rewardMulligans', 'isCompleted', 'isClaimed', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'challengeId', 'title', 'targetType',
+                         'currentProgress', 'targetGoal', 'rewardCoins',
+                         'rewardMulligans', 'isCompleted', 'isClaimed', 'updatedAt'
+                       ]) &&
+                       isValidDailyChallengeRecord(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(challengeDocId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().challengeId == existing().challengeId &&
+                       incoming().rewardCoins == existing().rewardCoins &&
+                       incoming().rewardMulligans == existing().rewardMulligans &&
+                       isValidDailyChallengeRecord(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'currentProgress', 'isCompleted', 'isClaimed', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(challengeDocId) && existing().userId == request.auth.uid;
+    }
+
+    // 15. Collection 11: reward_transactions (Append-Only Immutable Reward Audit Ledger)
+    match /reward_transactions/{txId} {
+      allow get: if isSignedIn() && isValidId(txId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+                       isValidId(txId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'rewardType', 'sourceId',
+                         'coinsDelta', 'xpDelta', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'rewardType', 'sourceId',
+                         'coinsDelta', 'xpDelta', 'mulligansDelta', 'createdAt'
+                       ]) &&
+                       isValidRewardTransaction(incoming());
+
+      allow update, delete: if false;
+    }
+
+    // 16. Collection 12: leaderboards (Top-Level & Board-Scoped Global Rankings, Owner-Only Writes)
+    match /leaderboards/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn() && existing().trophies >= 0;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'trophies', 'updatedAt']) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'trophies',
+                         'shootoutHighScore', 'longestDriveYds',
+                         'playerLevel', 'bestTournamentScoreToPar', 'updatedAt'
+                       ]) &&
+                       isValidLeaderboardEntry(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidLeaderboardEntry(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'trophies',
+                         'shootoutHighScore', 'longestDriveYds',
+                         'playerLevel', 'bestTournamentScoreToPar', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    match /leaderboards/{boardId}/entries/{userId} {
+      allow get: if isSignedIn() && isValidId(boardId) && isValidId(userId);
+      allow list: if isSignedIn() && existing().trophies >= 0;
+
+      allow create: if isSignedIn() &&
+                       isValidId(boardId) &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'trophies', 'updatedAt']) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'trophies',
+                         'shootoutHighScore', 'longestDriveYds',
+                         'playerLevel', 'bestTournamentScoreToPar', 'updatedAt'
+                       ]) &&
+                       isValidLeaderboardEntry(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(boardId) &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       isValidLeaderboardEntry(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'trophies',
+                         'shootoutHighScore', 'longestDriveYds',
+                         'playerLevel', 'bestTournamentScoreToPar', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(boardId) && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 17. Collection 13: tournament_registrations (Verified Tournament Registration Records)
+    match /tournament_registrations/{regId} {
+      allow get: if isSignedIn() && isValidId(regId) && (
+        (resource == null && regId.matches('.*_' + request.auth.uid + '$')) ||
+        (resource != null && (existing().userId == request.auth.uid || isAdmin()))
+      );
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+                       isValidId(regId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'tournamentId', 'username', 'entryFeePaid',
+                         'trophiesAtEntry', 'status', 'registeredAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'tournamentId', 'username', 'entryFeePaid',
+                         'trophiesAtEntry', 'status', 'idempotencyKey',
+                         'registeredAt', 'updatedAt'
+                       ]) &&
+                       isValidTournamentRegistration(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(regId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().tournamentId == existing().tournamentId &&
+                       incoming().entryFeePaid == existing().entryFeePaid &&
+                       isValidTournamentRegistration(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'status', 'updatedAt'
+                       ]);
+
+      allow delete: if false;
+    }
+
+    // 18. Collection 14: anti_cheat_flags (Telemetry Anti-Cheat Incident Reports & Admin Review)
+    match /anti_cheat_flags/{flagId} {
+      allow get: if isSignedIn() && isValidId(flagId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+                       isValidId(flagId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().reviewStatus == 'PENDING_REVIEW' &&
+                       incoming().keys().hasAll([
+                         'userId', 'matchId', 'reasonCode', 'severity',
+                         'details', 'reviewStatus', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'matchId', 'tournamentId', 'reasonCode',
+                         'severity', 'details', 'reportedStrokes',
+                         'reportedDriveYds', 'roundDurationSec', 'reviewStatus',
+                         'reviewedBy', 'reviewNotes', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidAntiCheatFlag(incoming());
+
+      allow update: if isAdmin() &&
+                       isValidId(flagId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().matchId == existing().matchId &&
+                       incoming().reasonCode == existing().reasonCode &&
+                       isValidAntiCheatFlag(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'reviewStatus', 'reviewedBy', 'reviewNotes', 'updatedAt'
+                       ]);
+
+      allow delete: if false;
+    }
+
+    // 19. Collection 15: audit_logs (Append-Only Immutable Security & Admin Audit Trail)
+    match /audit_logs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId) && (existing().actorId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (existing().actorId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+                       isValidId(logId) &&
+                       incoming().keys().hasAll([
+                         'actorId', 'targetUserId', 'actionType', 'resourceType',
+                         'resourceId', 'status', 'metadataSummary', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'actorId', 'targetUserId', 'actionType', 'resourceType',
+                         'resourceId', 'status', 'metadataSummary', 'createdAt'
+                       ]) &&
+                       isValidAuditLogRecord(incoming());
+
+      allow update, delete: if false;
+    }
+
+    // 20. Collection 16: rate_limits (Per-Player Request Rate Window Enforcement)
+    match /rate_limits/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create, update: if isSignedIn() &&
+                               isValidId(userId) &&
+                               request.auth.uid == userId &&
+                               incoming().keys().hasAll([
+                                 'userId', 'windowStartEpochMs', 'requestCount',
+                                 'lastAction', 'updatedAt'
+                               ]) &&
+                               incoming().keys().hasOnly([
+                                 'userId', 'windowStartEpochMs', 'requestCount',
+                                 'lastAction', 'updatedAt'
+                               ]) &&
+                               isValidRateLimitRecord(incoming());
+
+      allow delete: if false;
+    }
+
+    // 21. Collection 17: studio_admins (Apex Dynamics Game Studios Administrator Directory)
+    match /studio_admins/{adminUid} {
+      allow get: if isSignedIn() && isValidId(adminUid) && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+
+    // 22. Collection 18: reward_configs (Server-Controlled Reward Tables, Admin-Only Write)
+    match /reward_configs/{configId} {
+      allow get: if isSignedIn() && isValidId(configId);
+      allow list: if isSignedIn() && existing().holeCompletionBaseCoins >= 0;
+
+      allow create, update: if isAdmin() &&
+                               isValidId(configId) &&
+                               incoming().configId == configId &&
+                               incoming().keys().hasAll([
+                                 'configId', 'holeCompletionBaseCoins', 'birdieBonusCoins',
+                                 'eagleBonusCoins', 'aceBonusCoins', 'tournamentFirstRatio',
+                                 'tournamentSecondRatio', 'tournamentThirdRatio',
+                                 'updatedBy', 'updatedAt'
+                               ]) &&
+                               incoming().keys().hasOnly([
+                                 'configId', 'holeCompletionBaseCoins', 'birdieBonusCoins',
+                                 'eagleBonusCoins', 'aceBonusCoins', 'tournamentFirstRatio',
+                                 'tournamentSecondRatio', 'tournamentThirdRatio',
+                                 'updatedBy', 'updatedAt'
+                               ]) &&
+                               isValidRewardConfig(incoming());
+
+      allow delete: if false;
+    }
+
+    // 23. Collection 19: published_challenges (Studio-Published Challenges, Admin-Only Write)
+    match /published_challenges/{challengeId} {
+      allow get: if isSignedIn() && isValidId(challengeId);
+      allow list: if isSignedIn() && existing().rewardCoins >= 0;
+
+      allow create, update: if isAdmin() &&
+                               isValidId(challengeId) &&
+                               incoming().challengeId == challengeId &&
+                               incoming().keys().hasAll([
+                                 'challengeId', 'title', 'description', 'targetType',
+                                 'targetGoal', 'rewardCoins', 'rewardMulligans',
+                                 'isActive', 'publishedBy', 'updatedAt'
+                               ]) &&
+                               incoming().keys().hasOnly([
+                                 'challengeId', 'title', 'description', 'targetType',
+                                 'targetGoal', 'rewardCoins', 'rewardMulligans',
+                                 'isActive', 'publishedBy', 'updatedAt'
+                               ]) &&
+                               isValidPublishedChallenge(incoming());
+
+      allow delete: if false;
+    }
+  }
+}

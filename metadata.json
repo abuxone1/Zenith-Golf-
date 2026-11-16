@@ -1,0 +1,6 @@
+{
+  "name": "Zenith Golf",
+  "description": "Zenith Golf 2.0: Championship arcade golf simulator featuring realistic ball flight physics, 1v1 Rival Match Play, Course Architect Sandbox, Replay Telemetry Vault, Tournaments, and Firebase Cloud Sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
